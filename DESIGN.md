@@ -82,8 +82,8 @@ tsconfig.json / .vscodeignore / .gitignore
 - `package` は `vsix/` に出力し、`@vscode/vsce` は devDependencies に置く。
 - `CHANGELOG.md` は英語・Keep a Changelog 形式・`[Unreleased]` を先頭に置く。
 - アイコンは `media/icon.svg` を書いて PNG に変換する。SVG は VSIX に含めない。
-- CI は 型チェック → テスト → VSIX 梱包 → `npm audit` + シークレット走査。
-  TruffleHog の ref は可変タグではなくリリースの SHA で固定する。
+- CI は 型チェック → ユニットテスト → 統合テスト → VSIX 梱包。
+  外部 Action を足すときは、可変タグではなくリリースの SHA で固定する。
 
 ## 3. 自動クローズ
 

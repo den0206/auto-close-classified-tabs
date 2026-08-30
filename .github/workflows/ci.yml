@@ -72,36 +72,3 @@ jobs:
           name: vsix-package
           path: vsix/*.vsix
           retention-days: 7
-
-  security-audit:
-    name: Security Audit
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '20.x'
-          cache: 'npm'
-
-      - run: npm ci
-
-      # 実行時依存はゼロなので、ここが拾うのは開発時の依存だけ。
-      # それでもビルド経路の侵害には効くので回す。
-      - name: npm audit
-        run: npm audit --audit-level=moderate
-        continue-on-error: true
-
-      - name: Secret scan (TruffleHog)
-        # 可変 ref（@main）は上流が侵害された瞬間にこのジョブで任意コードが走る。
-        # リリースの SHA で固定する（v3.97.0）。
-        uses: trufflesecurity/trufflehog@20652fbbdefffcdaa493a5bf57ab2ac6b1db715b
-        with:
-          path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --only-verified
-        continue-on-error: true

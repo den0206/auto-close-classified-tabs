@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'fix/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  # 型チェックとユニットテストは VS Code の実体を要らないので Linux で回す。
+  # ここが赤くなれば、下の統合テストを待たずに壊れたことが分かる。
+  quick-check:
+    name: TypeCheck & Unit Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit test
+        run: npm test
+
+  # 統合テストは実際に VS Code を起動する。ヘッドレス環境では画面が要るので
+  # xvfb を噛ませる。VSIX の梱包までここで確認して成果物を残す。
+  integration:
+    name: Integration Test & Package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Integration test
+        run: xvfb-run -a npm run test:e2e
+
+      - name: Package VSIX
+        run: npm run package
+
+      - name: Verify build artifacts
+        run: |
+          test -f out/extension.js || { echo "::error::out/extension.js がありません"; exit 1; }
+          test -f vsix/auto-close-classified-tabs.vsix || { echo "::error::VSIX が生成されていません"; exit 1; }
+          # l10n を落とすと日本語環境で UI が英語に化けるだけで CI は通ってしまうので、
+          # .vscodeignore の事故に気づけるよう梱包物を明示的に確認する。
+          unzip -l vsix/auto-close-classified-tabs.vsix | grep -q 'package.nls.ja.json' \
+            || { echo "::error::package.nls.ja.json が VSIX に入っていません"; exit 1; }
+          unzip -l vsix/auto-close-classified-tabs.vsix | grep -q 'l10n/bundle.l10n.ja.json' \
+            || { echo "::error::l10n バンドルが VSIX に入っていません"; exit 1; }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix-package
+          path: vsix/*.vsix
+          retention-days: 7
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # 実行時依存はゼロなので、ここが拾うのは開発時の依存だけ。
+      # それでもビルド経路の侵害には効くので回す。
+      - name: npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Secret scan (TruffleHog)
+        # 可変 ref（@main）は上流が侵害された瞬間にこのジョブで任意コードが走る。
+        # リリースの SHA で固定する（v3.97.0）。
+        uses: trufflesecurity/trufflehog@bcfcf73aaf4759d4dadc2783177c245a02792318
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+        continue-on-error: true

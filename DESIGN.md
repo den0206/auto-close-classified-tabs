@@ -278,7 +278,7 @@ tabscolor 等と併用できる(README には記載しない)。
 
 ```jsonc
 "autoCloseClassifiedTabs.enabled":           true   // 自動クローズの有効・無効
-"autoCloseClassifiedTabs.maxTabs":           3      // グループごとの上限(既定 3)
+"autoCloseClassifiedTabs.maxTabs":           4      // グループごとの上限(既定 4)
 "autoCloseClassifiedTabs.maxTabsByType": { "diff": 1 }  // 種別ごとの上限。maxTabs より先に適用
 "autoCloseClassifiedTabs.closePreviewFirst": true   // プレビュータブを優先して閉じる
 "autoCloseClassifiedTabs.colors.enabled":    true   // 色分けの有効・無効

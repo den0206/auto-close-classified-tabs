@@ -44,7 +44,7 @@
         },
         "autoCloseClassifiedTabs.maxTabs": {
           "type": "integer",
-          "default": 3,
+          "default": 4,
           "minimum": 1,
           "description": "%configuration.maxTabs.description%"
         },

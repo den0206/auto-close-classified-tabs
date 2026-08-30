@@ -120,6 +120,11 @@ function sweep(force = false): Promise<number> {
 
 /** 閉じたタブの枚数を返す。0 なら閉じられるタブが 1 枚も無かった。 */
 async function runSweep(force = false): Promise<number> {
+  // 起動の知らせは最初の掃除で使い切る。閉じるものが無かったときに持ち越すと、
+  // ずっと後でタブを開いたときに「前回のセッションから…」と的外れな通知が出る。
+  const announce = announceStartup;
+  announceStartup = false;
+
   const cfg = vscode.workspace.getConfiguration('autoCloseClassifiedTabs');
   if (!force && (paused || !cfg.get<boolean>('enabled', true))) return 0;
 
@@ -160,10 +165,7 @@ async function runSweep(force = false): Promise<number> {
   lastClosed = reopenable;
   log?.appendLine(`${new Date().toLocaleTimeString()}  ${vscode.l10n.t('Closed {0}: {1}', victims.length, labels)}`);
   refreshStatus();
-  if (announceStartup) {
-    announceStartup = false;
-    void announceStartupSweep(victims.length);
-  }
+  if (announce) void announceStartupSweep(victims.length);
   return victims.length;
 }
 

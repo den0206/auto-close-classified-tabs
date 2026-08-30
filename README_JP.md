@@ -241,8 +241,8 @@ VS Code は拡張にアンインストールのフックを渡さないため、
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # ユニットテスト(64 件、VS Code 不要)
-npm run test:e2e    # 統合テスト(16 件、VS Code を起動)
+npm test            # ユニットテスト(73 件、VS Code 不要)
+npm run test:e2e    # 統合テスト(21 件、VS Code を起動)
 npm run package     # vsix/auto-close-classified-tabs.vsix を作る
 ```
 

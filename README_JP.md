@@ -257,8 +257,8 @@ sips -s format png -Z 128 media/icon.svg --out media/icon.png
   公開中の版の見出しがあることを検査します
 - `[Unreleased]` が空のままリリースするとバージョン見出しは作られず、リリースノートは
   コミットログから生成されます
-- `Ver_X.Y.Z` が既にある場合は `Ver_X.Y.Z+1` として採番されます(公開済みリリースは不変)。
-  Open VSX は同じ version を重複として弾くため、`+N` の再ビルドは GitHub Release だけになります
+- `Ver_X.Y.Z` が既にある場合はワークフローが停止します(公開済みリリースは不変で、
+  Open VSX は公開の取り消しができないためです)。出し直すときは patch を上げてください
 - 既存の最新タグより古いバージョンは拒否されます。Open VSX は公開の取り消しができないためです
 - Open VSX の名前空間は初回のみ手動で作ります:
   `npx ovsx create-namespace yuuki-sakai -p <token>`

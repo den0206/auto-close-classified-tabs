@@ -261,8 +261,8 @@ Notes:
   and that the version being shipped has a heading
 - Releasing with an empty `[Unreleased]` writes no version heading, and the release notes
   fall back to the commit log
-- If `Ver_X.Y.Z` already exists the rebuild is numbered `Ver_X.Y.Z+1` — published releases
-  are immutable. Open VSX rejects a duplicate version, so a `+N` rebuild is GitHub-only
+- If `Ver_X.Y.Z` already exists the workflow stops — published releases are immutable, and
+  Open VSX cannot unpublish. Bump the patch to ship again
 - A version older than the newest existing tag is rejected, since Open VSX cannot unpublish
 - The Open VSX namespace is created once by hand:
   `npx ovsx create-namespace yuuki-sakai -p <token>`

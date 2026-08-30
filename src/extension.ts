@@ -246,8 +246,14 @@ async function removeLabelIcons(): Promise<void> {
 export function activate(context: vscode.ExtensionContext): void {
   const decorations = new TabDecorations();
 
-  // 起動時はアクセス履歴が無いので、並び順を LRU 順とみなす(左ほど古い)
+  // 起動時はアクセス履歴が無いので、並び順を LRU 順とみなす(左ほど古い)。
+  // ただし各グループのアクティブタブだけは「直前まで見ていたタブ」なので最後に触る
+  // (左端にあるアクティブタブの隣が、復元直後の掃除で真っ先に閉じられるのを避ける)。
   for (const key of liveKeys()) lru.touch(key);
+  for (const group of vscode.window.tabGroups.all) {
+    const key = group.activeTab && tabKey(group.activeTab);
+    if (key) lru.touch(key);
+  }
 
   context.subscriptions.push(
     decorations,

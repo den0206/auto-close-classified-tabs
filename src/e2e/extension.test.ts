@@ -13,7 +13,8 @@ function fixture(name: string, body = '// fixture\n'): vscode.Uri {
   return vscode.Uri.file(file);
 }
 
-const tabCount = () => vscode.window.tabGroups.all.reduce((n, g) => n + g.tabs.length, 0);
+const allTabs = () => vscode.window.tabGroups.all.flatMap((g) => g.tabs);
+const tabCount = () => allTabs().length;
 
 /** 条件が満たされるまで待つ。デバウンス(150ms)と VS Code の非同期処理を吸収する。 */
 async function waitFor(cond: () => boolean, ms = 5000): Promise<void> {
@@ -203,4 +204,25 @@ suite('auto-close-classified-tabs', () => {
       assert.equal(info?.globalValue, undefined, `設定が残っている: ${section}.${key}`);
     }
   });
+  test('別グループのタブを保護しても、そのタブだけがピン留めされタブは増えない', async () => {
+    await openAll(['p1.ts']);
+    await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(fixture('p2.ts')), {
+      preview: false,
+      viewColumn: vscode.ViewColumn.Two,
+    });
+    await waitFor(() => vscode.window.tabGroups.all.length === 2);
+    const before = tabCount();
+
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.toggleProtect', fixture('p1.ts'));
+    await waitFor(() => allTabs().some((t) => t.label === 'p1.ts' && t.isPinned));
+
+    const labels = allTabs().map((t) => t.label).join(', ');
+    // showTextDocument で前面に出す実装だと、p1.ts がもう 1 枚開いてそちらがピン留めされる
+    assert.equal(tabCount(), before, `タブが増えた: ${labels}`);
+    assert.ok(!allTabs().find((t) => t.label === 'p2.ts')?.isPinned, `p2.ts が保護された: ${labels}`);
+
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.toggleProtect', fixture('p1.ts'));
+    await waitFor(() => allTabs().every((t) => !t.isPinned));
+  });
+
 });

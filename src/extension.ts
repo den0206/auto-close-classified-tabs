@@ -282,10 +282,13 @@ export function activate(context: vscode.ExtensionContext): void {
     { dispose: () => { if (timer) clearTimeout(timer); timer = undefined; lru.dispose(); } },
   );
 
-  if (vscode.workspace.getConfiguration('autoCloseClassifiedTabs').get<boolean>('colors.enabled', true)) {
+  const cfg = vscode.workspace.getConfiguration('autoCloseClassifiedTabs');
+  if (cfg.get<boolean>('colors.enabled', true)) {
     void offerTabDecorations();
   }
-  schedule();
+  // ここが唯一「イベント由来でない」掃除。切ると復元したセッションはそのまま残るが、
+  // 以降はタブを開くたびに通常どおり掃除する(このフラグは起動時の 1 回だけに効く)。
+  if (cfg.get<boolean>('closeOnStartup', true)) schedule();
 }
 
 export function deactivate(): void {

@@ -66,9 +66,18 @@ same thing.
 | `autoCloseClassifiedTabs.enabled` | `true` | Close unused tabs automatically |
 | `autoCloseClassifiedTabs.maxTabs` | `3` | Tabs to keep per editor group |
 | `autoCloseClassifiedTabs.maxTabsByType` | `{"diff": 1}` | Per-type limits, applied before `maxTabs` |
+| `autoCloseClassifiedTabs.closeOnStartup` | `true` | Close tabs right after a window opens |
 | `autoCloseClassifiedTabs.closePreviewFirst` | `true` | Close preview (italic) tabs first |
 | `autoCloseClassifiedTabs.colors.enabled` | `true` | Color tab labels and show badges |
 | `autoCloseClassifiedTabs.colors.rules` | `{}` | Override the type of a file |
+
+### Keeping a restored session
+
+A window that reopens 20 tabs is trimmed to `maxTabs` about 150 ms after it appears. Set
+`closeOnStartup` to `false` and the restored tabs are left alone — until you open the next
+tab, which sweeps them like any other. The setting buys you the moment needed to pin what
+you want to keep, not a permanent exemption. Whatever gets closed comes back with
+`Ctrl/Cmd+Shift+T`.
 
 ### Limiting a type to a few tabs
 

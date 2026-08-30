@@ -66,6 +66,11 @@
             }
           ]
         },
+        "autoCloseClassifiedTabs.closeOnStartup": {
+          "type": "boolean",
+          "default": true,
+          "description": "%configuration.closeOnStartup.description%"
+        },
         "autoCloseClassifiedTabs.closePreviewFirst": {
           "type": "boolean",
           "default": true,

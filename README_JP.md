@@ -64,9 +64,17 @@ VS Code 標準のピン留めを切り替えるだけなので、保護リスト
 | `autoCloseClassifiedTabs.enabled` | `true` | 自動クローズの有効・無効 |
 | `autoCloseClassifiedTabs.maxTabs` | `3` | エディタグループごとに残すタブの数 |
 | `autoCloseClassifiedTabs.maxTabsByType` | `{"diff": 1}` | 種別ごとの上限。`maxTabs` より先に適用 |
+| `autoCloseClassifiedTabs.closeOnStartup` | `true` | ウィンドウを開いた直後にタブを閉じる |
 | `autoCloseClassifiedTabs.closePreviewFirst` | `true` | プレビュータブ(斜体)を先に閉じる |
 | `autoCloseClassifiedTabs.colors.enabled` | `true` | 色分けとバッジの有効・無効 |
 | `autoCloseClassifiedTabs.colors.rules` | `{}` | ファイルの種別を上書き |
+
+### 復元したセッションを残す
+
+タブを 20 枚復元したウィンドウは、表示のおよそ 150ms 後に `maxTabs` まで減ります。
+`closeOnStartup` を `false` にすると復元したタブはそのまま残りますが、**次にタブを開いた
+時点で通常どおり掃除されます**。恒久的な除外ではなく、残したいタブをピン留めするための
+猶予だと考えてください。閉じられたタブは `Ctrl/Cmd+Shift+T` で戻せます。
 
 ### 種別ごとにタブ数を絞る
 

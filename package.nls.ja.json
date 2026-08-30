@@ -5,6 +5,7 @@
   "configuration.enabled.description": "使っていないタブを自動で閉じます。",
   "configuration.maxTabs.description": "エディタグループごとに残すタブの数。未保存とピン留めのタブは決して閉じないため、実際の数がこれを上回ることがあります。",
   "configuration.maxTabsByType.description": "種別ごとのタブ数の上限。`maxTabs` より先に適用します。キーは README にある色の名前(`diff` `docs` `json` `typescript` など)で、ここに書かれていない種別は `maxTabs` だけが効きます。例: `{ \"diff\": 1, \"docs\": 2 }`",
+  "configuration.closeOnStartup.description": "ウィンドウを開いた直後にタブを閉じます。オフにすると復元したセッションをそのまま残します(次にタブを開いた時点からは通常どおり閉じるので、残したいタブをピン留めする猶予ができるだけです)。",
   "configuration.closePreviewFirst.description": "プレビュータブ（斜体で表示されるタブ）を通常のタブより先に閉じます。",
   "configuration.colors.enabled.description": "ファイルの種別に応じてタブの文字色を変え、バッジを表示します。",
   "configuration.colors.rules.description": "ファイルの種別を上書きします。キーが `/` を含む場合はパスの一部として、含まない場合はパスの末尾として照合します。例: `{ \".proto\": \"sql\", \"docs/\": \"docs\" }`",

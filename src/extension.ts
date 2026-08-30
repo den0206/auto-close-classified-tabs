@@ -273,6 +273,15 @@ async function applyLabelIcons(): Promise<void> {
   void vscode.window.showInformationMessage(vscode.l10n.t('Type icons added to tab names. "Remove Type Icons From Tab Names" undoes this — run it before uninstalling, since VS Code leaves this setting behind.'));
 }
 
+// `applyLabelIcons` が書く形のキーか。書き込むキーは次の 3 形しかない:
+//   `**/*.{ts,mts,cts}` `**/{.gitignore,.npmignore}` `**/.env*`
+// ここで絞らずに値(記号)だけで消すと、同じ絵文字を使ったユーザー自身のパターン
+// (`"**/vendor/*.js": "🟨 ${filename}"` など)まで巻き込んで消してしまう。
+function looksLikeOurKey(key: string): boolean {
+  return key === '**/.env*'
+    || ((key.startsWith('**/*.{') || key.startsWith('**/{')) && key.endsWith('}'));
+}
+
 async function removeLabelIcons(): Promise<void> {
   const cfg = vscode.workspace.getConfiguration();
   const current = cfg.get<Record<string, string>>(LABEL_SETTING, {}) ?? {};
@@ -282,7 +291,7 @@ async function removeLabelIcons(): Promise<void> {
   const mineValues = new Set(Object.values(mine));
   const rest: Record<string, string> = {};
   for (const [key, value] of Object.entries(current)) {
-    const ours = key in mine || (key.startsWith('**/') && mineValues.has(value));
+    const ours = key in mine || (looksLikeOurKey(key) && mineValues.has(value));
     if (!ours) rest[key] = value; // ユーザーが自分で足した分は残す
   }
   // 何も残らないなら設定ごと消す。使わなくなったデータは中途半端に残さない。

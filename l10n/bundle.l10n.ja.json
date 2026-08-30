@@ -7,5 +7,16 @@
   "Show file type colors on tabs only? This turns on tab decorations and leaves the Explorer plain.": "ファイル種別の色をタブにだけ表示しますか? タブの装飾を有効にし、エクスプローラーは素の表示にします。",
   "Colors and badges now show on tabs only. The Explorer is left plain. \"Restore Default Colors and Badges\" undoes this — run it before uninstalling, since VS Code leaves these settings behind.": "色とバッジをタブにだけ表示するようにしました。エクスプローラーは素の表示になります。元に戻すには「色とバッジの表示を既定に戻す」を実行してください(VS Code はアンインストールしてもこの設定を消さないので、消す前に実行してください)。",
   "Decoration settings restored. The Explorer shows Git colors and badges again.": "装飾の設定を既定に戻しました。エクスプローラーに Git の色とバッジが再び表示されます。",
-  "No tabs to close. Everything open is active, unsaved, pinned or the last tab in its group.": "閉じられるタブがありません。開いているのはアクティブ・未保存・ピン留め、またはグループに残る最後のタブだけです。"
+  "No tabs to close. Everything open is active, unsaved, pinned or the last tab in its group.": "閉じられるタブがありません。開いているのはアクティブ・未保存・ピン留め、またはグループに残る最後のタブだけです。",
+  "Closed {0}: {1}": "{0} 枚閉じました: {1}",
+  "Reopen them": "開き直す",
+  "Settings": "設定",
+  "Closed {0} tab(s) left over from the last session. Unsaved and pinned tabs are always kept.": "前回のセッションから残っていたタブを {0} 枚閉じました。未保存とピン留めのタブは必ず残します。",
+  "Nothing to reopen. No tab has been closed automatically in this window yet.": "開き直せるタブがありません。このウィンドウではまだ自動で閉じたタブがありません。",
+  "Auto close paused for this window. Nothing was written to your settings.": "このウィンドウの自動クローズを一時停止しました。設定ファイルには何も書いていません。",
+  "Auto close resumed.": "自動クローズを再開しました。",
+  "Auto close is off. {0} tab(s) open in this group.": "自動クローズは止まっています。このグループには {0} 枚開いています。",
+  "{0} of {1} tabs in this group.": "このグループは {0} / {1} 枚です。",
+  "Next to close: {0}": "次に閉じるのは {0} です",
+  "Click to close unused tabs now.": "クリックすると使っていないタブを今すぐ閉じます。"
 }

@@ -154,9 +154,33 @@ suite('auto-close-classified-tabs', () => {
     }
   });
 
+  test('自動で閉じたタブを開き直せる', async () => {
+    await openAll(['r1.ts', 'r2.ts', 'r3.ts', 'r4.ts']);
+    await waitFor(() => tabCount() === 3);
+    const gone = ['r1.ts', 'r2.ts', 'r3.ts', 'r4.ts']
+      .filter((name) => !allTabs().some((t) => t.label === name));
+    assert.equal(gone.length, 1, `前提が崩れている: 閉じたのは ${gone.join(', ')}`);
+
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.reopenLastClosed');
+    // 開き直したタブはアクティブになるので、直後の掃除で再び閉じられることはない
+    await waitFor(() => allTabs().some((t) => t.label === gone[0]));
+  });
+
+  test('一時停止すると閉じず、再開すると閉じる', async () => {
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.togglePause');
+    try {
+      await openAll(['z1.ts', 'z2.ts', 'z3.ts', 'z4.ts', 'z5.ts']);
+      await new Promise((r) => setTimeout(r, 800));
+      assert.equal(tabCount(), 5, '一時停止中に閉じられた');
+    } finally {
+      await vscode.commands.executeCommand('autoCloseClassifiedTabs.togglePause');
+    }
+    await waitFor(() => tabCount() === 3);
+  });
+
   test('コマンドがすべて登録されている', async () => {
     const all = await vscode.commands.getCommands(true);
-    for (const id of ['closeUnused', 'toggleProtect', 'enableTabDecorations', 'restoreDecorationDefaults', 'applyLabelIcons', 'removeLabelIcons']) {
+    for (const id of ['closeUnused', 'reopenLastClosed', 'togglePause', 'showLog', 'toggleProtect', 'enableTabDecorations', 'restoreDecorationDefaults', 'applyLabelIcons', 'removeLabelIcons']) {
       assert.ok(all.includes(`autoCloseClassifiedTabs.${id}`), `未登録: ${id}`);
     }
   });

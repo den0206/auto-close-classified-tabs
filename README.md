@@ -54,6 +54,23 @@ alone. Set either back to `true` if you would rather have the Git markers, or ru
 
 to drop all four settings and get the VS Code defaults back.
 
+## Seeing what happened
+
+The status bar shows how many tabs the active group is holding against the limit
+(`4/4`). Hover it for the tab that goes next, click it to close unused tabs now.
+
+Nothing disappears without a record:
+
+> **Auto Close Classified Tabs: Reopen Tabs Just Closed** — brings back the last batch
+> **Auto Close Classified Tabs: Show Auto Close Log** — every sweep, with the tab names
+> **Auto Close Classified Tabs: Pause or Resume Auto Close (This Window)** — stops it while
+> you work through something, without touching your settings. It resumes when the window
+> reopens.
+
+The list of just-closed tabs lives in memory and covers the most recent sweep only. Diffs
+and custom editors are not in it — there is no way to reopen those at the same URI.
+`Ctrl/Cmd+Shift+T` still walks back through everything, one tab at a time.
+
 ## Keeping a tab open
 
 Right-click the tab → **Protect From Auto Close (Toggle Pin)**.
@@ -71,6 +88,7 @@ same thing.
 | `autoCloseClassifiedTabs.maxTabsByType` | `{"diff": 1}` | Per-type limits, applied before `maxTabs` |
 | `autoCloseClassifiedTabs.closeOnStartup` | `true` | Close tabs right after a window opens |
 | `autoCloseClassifiedTabs.closePreviewFirst` | `true` | Close preview (italic) tabs first |
+| `autoCloseClassifiedTabs.statusBar` | `true` | Show the tab count and what closes next in the status bar |
 | `autoCloseClassifiedTabs.colors.enabled` | `true` | Color tab labels and show badges |
 | `autoCloseClassifiedTabs.colors.rules` | `{}` | Override the type of a file |
 

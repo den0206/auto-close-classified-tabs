@@ -53,6 +53,22 @@ Git のマーカーを優先したい場合は、どちらかを `true` に戻�
 
 > **Auto Close Classified Tabs: 色とバッジの表示を既定に戻す**
 
+## 何が起きたかを確かめる
+
+ステータスバーに、いま開いているグループの枚数と上限が出ます(`4/4`)。
+ホバーすると次に閉じられるタブが分かり、クリックするとその場で掃除します。
+
+黙って消えることはありません。
+
+> **自動で閉じたタブを開き直す** — 直前に閉じた分を戻します
+> **自動クローズのログを表示** — いつ何を閉じたかが残っています
+> **自動クローズを一時停止・再開(このウィンドウ)** — 設定ファイルには何も書かずに止めます。
+> ウィンドウを開き直せば元に戻ります
+
+開き直せるのは**直前の 1 回分**だけで、記録はメモリ上にしかありません。差分やカスタム
+エディタは対象外です(同じ URI で開き直す手段がないため)。もっと前まで戻るなら
+`Ctrl/Cmd+Shift+T` を使ってください。
+
 ## 特定のタブを閉じたくないとき
 
 タブを右クリック →「**自動クローズから保護(ピン留めの切替)**」。
@@ -69,6 +85,7 @@ VS Code 標準のピン留めを切り替えるだけなので、保護リスト
 | `autoCloseClassifiedTabs.maxTabsByType` | `{"diff": 1}` | 種別ごとの上限。`maxTabs` より先に適用 |
 | `autoCloseClassifiedTabs.closeOnStartup` | `true` | ウィンドウを開いた直後にタブを閉じる |
 | `autoCloseClassifiedTabs.closePreviewFirst` | `true` | プレビュータブ(斜体)を先に閉じる |
+| `autoCloseClassifiedTabs.statusBar` | `true` | 枚数と次に閉じるタブをステータスバーに出す |
 | `autoCloseClassifiedTabs.colors.enabled` | `true` | 色分けとバッジの有効・無効 |
 | `autoCloseClassifiedTabs.colors.rules` | `{}` | ファイルの種別を上書き |
 

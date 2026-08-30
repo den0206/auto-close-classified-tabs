@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LruTracker, pickTabsToClose, type TabLike } from './autoClose';
+import { LruTracker, nextToClose, pickTabsToClose, type TabLike } from './autoClose';
 import { TabDecorations } from './decorate';
 import { buildLabelPatterns, categorize } from './rules';
 
@@ -17,6 +17,17 @@ let noticeShown = false;
 let pending: Promise<number> = Promise.resolve(0);
 /** `enableTabDecorations` を実行する前の 4 設定の値。永続化はしない。 */
 let decorationBackup: Array<boolean | undefined> | undefined;
+/** このウィンドウでの一時停止。設定には書かない(ウィンドウを閉じれば解ける)。 */
+let paused = false;
+/** 起動直後の掃除の結果だけ知らせる。どの掃除が最初に走っても拾えるようフラグで持つ。 */
+let announceStartup = false;
+let log: vscode.OutputChannel | undefined;
+let status: vscode.StatusBarItem | undefined;
+/**
+ * 直前の掃除で閉じたタブ。開き直すためだけに持つ。**保持するのは文字列と数値だけ**で、
+ * Tab や TextDocument への参照は持たない(破棄済みオブジェクトを生かしてしまうため)。
+ */
+let lastClosed: Array<{ uri: string; viewColumn: number }> = [];
 
 /** タブの安定キー。undefined を返したタブは閉じない・数えない。 */
 function tabKey(tab: vscode.Tab): string | undefined {
@@ -110,7 +121,7 @@ function sweep(force = false): Promise<number> {
 /** 閉じたタブの枚数を返す。0 なら閉じられるタブが 1 枚も無かった。 */
 async function runSweep(force = false): Promise<number> {
   const cfg = vscode.workspace.getConfiguration('autoCloseClassifiedTabs');
-  if (!force && !cfg.get<boolean>('enabled', true)) return 0;
+  if (!force && (paused || !cfg.get<boolean>('enabled', true))) return 0;
 
   const rules = cfg.get<Record<string, string>>('colors.rules', {}) ?? {};
   const doomed = new Set(pickTabsToClose(collect(rules), {
@@ -121,14 +132,22 @@ async function runSweep(force = false): Promise<number> {
   if (doomed.size === 0) return 0;
 
   const victims: vscode.Tab[] = [];
+  const reopenable: Array<{ uri: string; viewColumn: number }> = [];
   for (const group of vscode.window.tabGroups.all) {
     for (const tab of group.tabs) {
       const uriKey = tabKey(tab);
-      if (uriKey && doomed.has(groupScoped(group.viewColumn, uriKey))) victims.push(tab);
+      if (!uriKey || !doomed.has(groupScoped(group.viewColumn, uriKey))) continue;
+      victims.push(tab);
+      // 開き直せるのは素のエディタとノートブックだけ。差分やカスタムエディタは
+      // 同じものを開き直す手段が無いので覚えない(できない約束をしない)。
+      const uri = tab.input instanceof vscode.TabInputText
+        || tab.input instanceof vscode.TabInputNotebook ? tab.input.uri : undefined;
+      if (uri) reopenable.push({ uri: uri.toString(), viewColumn: group.viewColumn });
     }
   }
   if (victims.length === 0) return 0;
 
+  const labels = victims.map((tab) => tab.label).join(', ');
   try {
     await vscode.window.tabGroups.close(victims, true);
   } catch {
@@ -137,7 +156,114 @@ async function runSweep(force = false): Promise<number> {
     // タブが閉じられれば onDidChangeTabs がもう一度 sweep を呼ぶので、ここは待てばよい。
     return 0;
   }
+
+  lastClosed = reopenable;
+  log?.appendLine(`${new Date().toLocaleTimeString()}  ${vscode.l10n.t('Closed {0}: {1}', victims.length, labels)}`);
+  refreshStatus();
+  if (announceStartup) {
+    announceStartup = false;
+    void announceStartupSweep(victims.length);
+  }
   return victims.length;
+}
+
+/**
+ * 起動直後の掃除だけは黙って済ませない。インストールした直後にウィンドウを開き直すと
+ * 復元したタブが理由も告げずに減るので、「壊れた」と受け取られる。
+ * 出すのは 1 ウィンドウにつき 1 回で、実際に閉じたときだけ。
+ */
+async function announceStartupSweep(closed: number): Promise<void> {
+  const reopen = vscode.l10n.t('Reopen them');
+  const settings = vscode.l10n.t('Settings');
+  const picked = await vscode.window.showInformationMessage(
+    vscode.l10n.t('Closed {0} tab(s) left over from the last session. Unsaved and pinned tabs are always kept.', closed),
+    reopen,
+    settings,
+  );
+  if (picked === reopen) await reopenLastClosed();
+  else if (picked === settings) {
+    await vscode.commands.executeCommand('workbench.action.openSettings', 'autoCloseClassifiedTabs');
+  }
+}
+
+/**
+ * 直前の掃除で閉じたタブを開き直す。開き直している間は掃除を止め、終わったあとに
+ * 待機中の掃除も 1 回だけ捨てる。そうしないと、開き直した端から閉じ直されて見える。
+ */
+async function reopenLastClosed(): Promise<void> {
+  const batch = lastClosed;
+  if (batch.length === 0) {
+    void vscode.window.showInformationMessage(
+      vscode.l10n.t('Nothing to reopen. No tab has been closed automatically in this window yet.'),
+    );
+    return;
+  }
+  lastClosed = [];
+  const wasPaused = paused;
+  paused = true;
+  try {
+    for (const { uri, viewColumn } of batch) {
+      try {
+        await vscode.commands.executeCommand('vscode.open', vscode.Uri.parse(uri), {
+          viewColumn,
+          preview: false,
+        });
+      } catch {
+        // 消えたファイルや開けない URI は黙って飛ばす。残りは開き直す
+      }
+    }
+  } finally {
+    paused = wasPaused;
+    if (timer) clearTimeout(timer);
+    timer = undefined;
+    refreshStatus();
+  }
+}
+
+/** このウィンドウの自動クローズを止める・再開する。設定ファイルには何も書かない。 */
+function togglePause(): void {
+  paused = !paused;
+  refreshStatus();
+  void vscode.window.showInformationMessage(paused
+    ? vscode.l10n.t('Auto close paused for this window. Nothing was written to your settings.')
+    : vscode.l10n.t('Auto close resumed.'));
+  if (!paused) schedule();
+}
+
+/**
+ * いま何枚開いていて次にどれが閉じられるかを出す。閉じたことに後から気づけるようにする。
+ * ここも状態は持たず、呼ばれるたびに現在のタブから組み立てる。
+ */
+function refreshStatus(): void {
+  if (!status) return;
+  const cfg = vscode.workspace.getConfiguration('autoCloseClassifiedTabs');
+  if (!cfg.get<boolean>('statusBar', true)) {
+    status.hide();
+    return;
+  }
+
+  const group = vscode.window.tabGroups.activeTabGroup;
+  const max = Math.max(1, Math.floor(cfg.get<number>('maxTabs', 4)) || 1);
+  const rules = cfg.get<Record<string, string>>('colors.rules', {}) ?? {};
+  const here = collect(rules).filter((t) => t.group === group.viewColumn);
+  const open = here.filter((t) => t.closable).length;
+  const off = paused || !cfg.get<boolean>('enabled', true);
+
+  const next = off ? undefined : nextToClose(here, cfg.get<boolean>('closePreviewFirst', true));
+  const doomed = next === undefined ? undefined : group.tabs.find((tab) => {
+    const key = tabKey(tab);
+    return key !== undefined && groupScoped(group.viewColumn, key) === next;
+  })?.label;
+
+  status.text = off ? `$(circle-slash) ${open}` : `$(clear-all) ${open}/${max}`;
+  status.tooltip = [
+    off
+      ? vscode.l10n.t('Auto close is off. {0} tab(s) open in this group.', open)
+      : vscode.l10n.t('{0} of {1} tabs in this group.', open, max),
+    doomed === undefined ? undefined : vscode.l10n.t('Next to close: {0}', doomed),
+    vscode.l10n.t('Click to close unused tabs now.'),
+  ].filter((line) => line !== undefined).join('\n');
+  status.show();
 }
 
 function schedule(): void {
@@ -319,6 +445,9 @@ async function removeLabelIcons(): Promise<void> {
 
 export function activate(context: vscode.ExtensionContext): void {
   const decorations = new TabDecorations();
+  log = vscode.window.createOutputChannel('Auto Close Classified Tabs');
+  status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  status.command = 'autoCloseClassifiedTabs.closeUnused';
 
   // 起動時はアクセス履歴が無いので、並び順を LRU 順とみなす(左ほど古い)。
   // ただし各グループのアクティブタブだけは「直前まで見ていたタブ」なので最後に触る
@@ -331,6 +460,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     decorations,
+    log,
+    status,
     vscode.window.registerFileDecorationProvider(decorations),
 
     vscode.window.tabGroups.onDidChangeTabs((e) => {
@@ -344,15 +475,25 @@ export function activate(context: vscode.ExtensionContext): void {
         if (key) lru.touch(key);
       }
       if (e.closed.length > 0) lru.retain(liveKeys()); // 取りこぼしたキーを掃除
+      refreshStatus();
       schedule();
     }),
 
+    // グループの追加・分割・フォーカス移動でも枚数の見え方が変わる
+    vscode.window.tabGroups.onDidChangeTabGroups(() => refreshStatus()),
+
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('autoCloseClassifiedTabs.colors')) decorations.reload();
-      if (e.affectsConfiguration('autoCloseClassifiedTabs')) schedule();
+      if (e.affectsConfiguration('autoCloseClassifiedTabs')) {
+        refreshStatus();
+        schedule();
+      }
     }),
 
     vscode.commands.registerCommand('autoCloseClassifiedTabs.closeUnused', closeUnusedNow),
+    vscode.commands.registerCommand('autoCloseClassifiedTabs.reopenLastClosed', reopenLastClosed),
+    vscode.commands.registerCommand('autoCloseClassifiedTabs.togglePause', togglePause),
+    vscode.commands.registerCommand('autoCloseClassifiedTabs.showLog', () => log?.show(true)),
     vscode.commands.registerCommand('autoCloseClassifiedTabs.toggleProtect', toggleProtect),
     vscode.commands.registerCommand('autoCloseClassifiedTabs.enableTabDecorations', enableTabDecorations),
     vscode.commands.registerCommand('autoCloseClassifiedTabs.restoreDecorationDefaults', restoreDecorationDefaults),
@@ -366,9 +507,13 @@ export function activate(context: vscode.ExtensionContext): void {
   if (cfg.get<boolean>('colors.enabled', true)) {
     void offerTabDecorations();
   }
+  refreshStatus();
   // ここが唯一「イベント由来でない」掃除。切ると復元したセッションはそのまま残るが、
   // 以降はタブを開くたびに通常どおり掃除する(このフラグは起動時の 1 回だけに効く)。
-  if (cfg.get<boolean>('closeOnStartup', true)) schedule();
+  if (cfg.get<boolean>('closeOnStartup', true)) {
+    announceStartup = true;
+    schedule();
+  }
 }
 
 export function deactivate(): void {
@@ -377,4 +522,9 @@ export function deactivate(): void {
   lru.dispose();
   noticeShown = false;
   decorationBackup = undefined;
+  paused = false;
+  announceStartup = false;
+  lastClosed = [];
+  log = undefined;
+  status = undefined;
 }

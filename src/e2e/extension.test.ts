@@ -250,6 +250,37 @@ suite('auto-close-classified-tabs', () => {
     await waitFor(() => allTabs().every((t) => !t.isPinned));
   });
 
+  test('同じファイルを 2 グループで開いても、ピン留めした方は残る', async () => {
+    // 選定キーが URI だけだと、グループ 1 の選定結果でグループ 2 のコピーまで閉じられる
+    const shared = fixture('shared.ts');
+    for (const column of [vscode.ViewColumn.One, vscode.ViewColumn.Two]) {
+      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(shared), {
+        preview: false,
+        viewColumn: column,
+      });
+    }
+    await waitFor(() => vscode.window.tabGroups.all.length === 2);
+
+    // いまアクティブなのはグループ 2 の shared.ts
+    await vscode.commands.executeCommand('workbench.action.pinEditor');
+    await waitFor(() => allTabs().some((t) => t.label === 'shared.ts' && t.isPinned));
+
+    // グループ 1 だけを溢れさせ、そちらの shared.ts(最も古い)を閉じさせる
+    for (const name of ['q1.ts', 'q2.ts', 'q3.ts', 'q4.ts']) {
+      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(fixture(name)), {
+        preview: false,
+        viewColumn: vscode.ViewColumn.One,
+      });
+    }
+    await waitFor(() => vscode.window.tabGroups.all.every((g) => g.tabs.length <= 3));
+
+    const labels = allTabs().map((t) => `${t.label}${t.isPinned ? '(pinned)' : ''}`).join(', ');
+    assert.ok(
+      allTabs().some((t) => t.label === 'shared.ts' && t.isPinned),
+      `ピン留めした別グループのコピーまで閉じられた: ${labels}`,
+    );
+  });
+
   test('旧版が書いた種別アイコンのパターンも取り除ける', async () => {
     const key = 'workbench.editor.customLabels.patterns';
     const read = () => vscode.workspace.getConfiguration().get<Record<string, string>>(key);

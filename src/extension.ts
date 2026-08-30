@@ -13,6 +13,8 @@ let timer: NodeJS.Timeout | undefined;
  * という前提が崩れる。新しいウィンドウで再び聞かれるのはその対価)。
  */
 let noticeShown = false;
+/** 実行中の掃除。次の掃除はこれの後ろに並ぶ(下の `sweep` を参照)。 */
+let pending: Promise<number> = Promise.resolve(0);
 
 /** タブの安定キー。undefined を返したタブは閉じない・数えない。 */
 function tabKey(tab: vscode.Tab): string | undefined {
@@ -36,6 +38,16 @@ function tabResource(tab: vscode.Tab): vscode.Uri | undefined {
   return undefined;
 }
 
+/**
+ * 閉じる対象を一意に指すキー。**グループ番号を含める**。
+ * 同じファイルを 2 つのグループで開くと URI だけでは区別がつかず、片方のグループの選定結果で
+ * もう片方(ピン留めやアクティブかもしれない)まで閉じてしまう。
+ * LRU の方は URI のままにする — 利用実績はファイル単位で共有したい。
+ */
+function groupScoped(group: number, key: string): string {
+  return `${group}\u0000${key}`;
+}
+
 function isDiffTab(tab: vscode.Tab): boolean {
   return tab.input instanceof vscode.TabInputTextDiff
     || tab.input instanceof vscode.TabInputNotebookDiff;
@@ -51,17 +63,19 @@ function collect(rules: Record<string, string>): TabLike[] {
   const out: TabLike[] = [];
   for (const group of vscode.window.tabGroups.all) {
     group.tabs.forEach((tab, order) => {
-      const key = tabKey(tab);
+      const uriKey = tabKey(tab);
       out.push({
-        key: key ?? `opaque:${group.viewColumn}:${order}`,
+        key: uriKey === undefined
+          ? `opaque:${group.viewColumn}:${order}`
+          : groupScoped(group.viewColumn, uriKey),
         group: group.viewColumn,
         isDirty: tab.isDirty,
         isPinned: tab.isPinned,
         isActive: tab.isActive,
         isPreview: tab.isPreview,
-        closable: key !== undefined,
+        closable: uriKey !== undefined,
         order,
-        lastUsed: key ? lru.lastUsed(key) : 0,
+        lastUsed: uriKey ? lru.lastUsed(uriKey) : 0,
         type: tabType(tab, rules),
       });
     });
@@ -80,8 +94,19 @@ function liveKeys(): Set<string> {
   return keys;
 }
 
+/**
+ * 掃除を 1 本ずつ直列に流す。並行に走ると、先に走った方が閉じたタブを後から走った方が掴み、
+ * `close()` が例外を投げて **1 枚も閉じないまま 0 を返す**。`closeUnused` から呼ばれると
+ * 「閉じられるタブがありません」という誤った案内になってしまう。
+ */
+function sweep(force = false): Promise<number> {
+  const next = pending.then(() => runSweep(force), () => runSweep(force));
+  pending = next.catch(() => 0);
+  return next;
+}
+
 /** 閉じたタブの枚数を返す。0 なら閉じられるタブが 1 枚も無かった。 */
-async function sweep(force = false): Promise<number> {
+async function runSweep(force = false): Promise<number> {
   const cfg = vscode.workspace.getConfiguration('autoCloseClassifiedTabs');
   if (!force && !cfg.get<boolean>('enabled', true)) return 0;
 
@@ -96,8 +121,8 @@ async function sweep(force = false): Promise<number> {
   const victims: vscode.Tab[] = [];
   for (const group of vscode.window.tabGroups.all) {
     for (const tab of group.tabs) {
-      const key = tabKey(tab);
-      if (key && doomed.has(key)) victims.push(tab);
+      const uriKey = tabKey(tab);
+      if (uriKey && doomed.has(groupScoped(group.viewColumn, uriKey))) victims.push(tab);
     }
   }
   if (victims.length === 0) return 0;
@@ -207,15 +232,34 @@ async function restoreDecorationDefaults(): Promise<void> {
 async function toggleProtect(...args: unknown[]): Promise<void> {
   const uri = args[0] instanceof vscode.Uri ? args[0] : undefined;
   const target = uri
-    ? vscode.window.tabGroups.all
-        .flatMap((group) => group.tabs)
-        .find((tab) => tabResource(tab)?.toString() === uri.toString())
+    ? findTabFor(uri)
     : vscode.window.tabGroups.activeTabGroup.activeTab;
   if (!target) return;
   await vscode.commands.executeCommand(
     target.isPinned ? 'workbench.action.unpinEditor' : 'workbench.action.pinEditor',
     ...args,
   );
+}
+
+/**
+ * URI に対応するタブを探す。同じファイルが複数グループで開かれていると候補が複数になり、
+ * どれを見るかでピン留めか解除かの判定が変わる。メニューが渡してくる `groupId` は
+ * **公開 API から TabGroup へ解決できない**(`TabGroup` は `viewColumn` しか持たない)ので、
+ * タブを右クリックするとそのグループがアクティブになることを使って、アクティブなグループの
+ * 分を優先する。実際にどのタブを操作するかは組み込みコマンドが `args` から解決する。
+ */
+function findTabFor(uri: vscode.Uri): vscode.Tab | undefined {
+  const want = uri.toString();
+  const hit = (group: vscode.TabGroup): vscode.Tab | undefined =>
+    group.tabs.find((tab) => tabResource(tab)?.toString() === want);
+
+  const active = hit(vscode.window.tabGroups.activeTabGroup);
+  if (active) return active;
+  for (const group of vscode.window.tabGroups.all) {
+    const found = hit(group);
+    if (found) return found;
+  }
+  return undefined;
 }
 
 async function applyLabelIcons(): Promise<void> {

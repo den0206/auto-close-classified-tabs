@@ -8,7 +8,7 @@ Closes tabs you are not using, and colors tab labels by file type.
 Japanese version: [README_JP.md](README_JP.md)
 
 - Unsaved tabs are **never** closed
-- Keep as many tabs as you want (default 3, counted per editor group)
+- Keep as many tabs as you want (default 4, counted per editor group)
 - Pinned tabs are excluded from auto close
 - Tab labels get a color and a badge (`TS`, `PY`, `DA`, …) based on the file type
 

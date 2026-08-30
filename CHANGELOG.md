@@ -15,6 +15,15 @@ and versions follow [Semantic Versioning](https://semver.org/).
 - Renamed to Auto Close Classified Tabs. The settings, theme color IDs and command IDs all
   moved to the `autoCloseClassifiedTabs` prefix. Nothing had shipped yet, so this breaks
   no existing configuration.
+- When several `autoCloseClassifiedTabs.colors.rules` entries match one file, the longest
+  key now wins. It used to be whichever entry came first, so reordering `settings.json`
+  could change a color.
+- `autoCloseClassifiedTabs.maxTabsByType` only accepts real type names now; a typo such as
+  `diffs` is flagged in the settings editor instead of being silently ignored.
+- The two commands that write settings now name the command that undoes them, and say that
+  VS Code leaves the settings behind on uninstall. Both READMEs gained a "before you
+  uninstall" section for the same reason: without it, an uninstall can leave the Explorer
+  with its Git colors and badges switched off and nothing to explain why.
 
 ### Added
 
@@ -26,6 +35,11 @@ and versions follow [Semantic Versioning](https://semver.org/).
   when the `OVSX_TOKEN` secret is set — that step is skipped with a warning when it is not.
 - **Restore Default Colors and Badges** removes the four settings written by **Show Type
   Colors on Tabs Only**, so every command that writes a setting now has one that undoes it.
+- `autoCloseClassifiedTabs.closeOnStartup` (default `true`). Turn it off and a restored
+  session is left alone until you open the next tab — enough of a pause to pin what you
+  want to keep, without exempting those tabs for good.
+- **Close Unused Tabs Now** says so when it closed nothing. Running a command and getting
+  no response at all gave no way to tell a broken command from having nothing to close.
 
 ### Fixed
 
@@ -35,6 +49,22 @@ and versions follow [Semantic Versioning](https://semver.org/).
   the group" rule, so the last editor beside a terminal is kept open.
 - The `colors.rules` examples in the settings descriptions and both READMEs used type names
   that do not exist (`config`, `systems`), which would have produced no decoration at all.
+- **Protect From Auto Close** now pins the tab you right-clicked. On a diff, notebook or
+  custom editor it used to open a second, plain text tab for the same file and pin that
+  one, leaving the tab you aimed at unprotected; on a tab in another editor group it
+  dragged the file into the active group. The command hands the menu's arguments to the
+  built-in pin command instead of focusing the tab itself.
+- **Remove Type Icons From Tab Names** now also removes patterns written by an earlier
+  version. Adding one extension changes the pattern's key (`**/*.{js,jsx}` becomes
+  `**/*.{cjs,js,jsx}`), and entries under the old key were left in `settings.json`
+  forever. Patterns you wrote yourself are still kept.
+- A sweep no longer fails wholesale when one of its tabs disappears first. Closing a tab
+  that a user or another extension has already closed makes VS Code throw
+  `Tab close: Invalid tab not found!`, which rejected unhandled and left every other tab
+  in that batch open. The next tab event sweeps them instead.
+- After a restart, the tab that was active in each editor group is treated as the most
+  recently used one. Startup has no access history and fell back to left-to-right order,
+  which could close the tab next to the one you were last looking at.
 
 ## [0.1.0] — 2026-08-30
 

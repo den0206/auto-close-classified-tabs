@@ -1,0 +1,368 @@
+{
+  "name": "auto-close-classified-tabs",
+  "displayName": "Auto Close Classified Tabs",
+  "description": "%extension.description%",
+  "version": "0.1.0",
+  "publisher": "yuuki-sakai",
+  "icon": "media/icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/den0206/auto-close-classified-tabs"
+  },
+  "engines": {
+    "vscode": "^1.88.0",
+    "node": ">=20"
+  },
+  "galleryBanner": {
+    "color": "#4F46E5",
+    "theme": "dark"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "tabs",
+    "editor",
+    "close",
+    "color",
+    "productivity"
+  ],
+  "main": "./out/extension.js",
+  "l10n": "./l10n",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "%configuration.title%",
+      "properties": {
+        "autoCloseClassifiedTabs.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%configuration.enabled.description%"
+        },
+        "autoCloseClassifiedTabs.maxTabs": {
+          "type": "integer",
+          "default": 3,
+          "minimum": 1,
+          "description": "%configuration.maxTabs.description%"
+        },
+        "autoCloseClassifiedTabs.maxTabsByType": {
+          "type": "object",
+          "default": {
+            "diff": 1
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "markdownDescription": "%configuration.maxTabsByType.description%",
+          "examples": [
+            {
+              "diff": 1,
+              "generated": 1,
+              "docs": 2
+            }
+          ]
+        },
+        "autoCloseClassifiedTabs.closePreviewFirst": {
+          "type": "boolean",
+          "default": true,
+          "description": "%configuration.closePreviewFirst.description%"
+        },
+        "autoCloseClassifiedTabs.colors.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%configuration.colors.enabled.description%"
+        },
+        "autoCloseClassifiedTabs.colors.rules": {
+          "type": "object",
+          "default": {},
+          "additionalProperties": {
+            "type": "string"
+          },
+          "markdownDescription": "%configuration.colors.rules.description%",
+          "examples": [
+            {
+              ".proto": "sql",
+              "docs/": "docs"
+            }
+          ]
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "autoCloseClassifiedTabs.closeUnused",
+        "title": "%command.closeUnused.title%",
+        "category": "%extension.category%",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.toggleProtect",
+        "title": "%command.toggleProtect.title%",
+        "category": "%extension.category%",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.enableTabDecorations",
+        "title": "%command.enableTabDecorations.title%",
+        "category": "%extension.category%",
+        "icon": "$(symbol-color)"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.restoreDecorationDefaults",
+        "title": "%command.restoreDecorationDefaults.title%",
+        "category": "%extension.category%"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.applyLabelIcons",
+        "title": "%command.applyLabelIcons.title%",
+        "category": "%extension.category%"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.removeLabelIcons",
+        "title": "%command.removeLabelIcons.title%",
+        "category": "%extension.category%"
+      }
+    ],
+    "menus": {
+      "editor/title/context": [
+        {
+          "command": "autoCloseClassifiedTabs.toggleProtect",
+          "group": "1_close@99"
+        }
+      ]
+    },
+    "colors": [
+      {
+        "id": "autoCloseClassifiedTabs.diff",
+        "description": "%color.diff%",
+        "defaults": {
+          "dark": "#D19A66",
+          "light": "#B7791F"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.test",
+        "description": "%color.test%",
+        "defaults": {
+          "dark": "#C678DD",
+          "light": "#8B5CF6"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.generated",
+        "description": "%color.generated%",
+        "defaults": {
+          "dark": "#6B7280",
+          "light": "#9CA3AF"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.docs",
+        "description": "%color.docs%",
+        "defaults": {
+          "dark": "#A6BBD9",
+          "light": "#465B7A"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.json",
+        "description": "%color.json%",
+        "defaults": {
+          "dark": "#C3E88D",
+          "light": "#3F7A16"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.yaml",
+        "description": "%color.yaml%",
+        "defaults": {
+          "dark": "#4EC9A0",
+          "light": "#0F7A5F"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.toml",
+        "description": "%color.toml%",
+        "defaults": {
+          "dark": "#C9A227",
+          "light": "#8A6D1F"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.env",
+        "description": "%color.env%",
+        "defaults": {
+          "dark": "#E0A458",
+          "light": "#A45A0B"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.sql",
+        "description": "%color.sql%",
+        "defaults": {
+          "dark": "#9CDCFE",
+          "light": "#0B6FA4"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.shell",
+        "description": "%color.shell%",
+        "defaults": {
+          "dark": "#A9A1D9",
+          "light": "#5B4FA8"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.docker",
+        "description": "%color.docker%",
+        "defaults": {
+          "dark": "#4EA8DE",
+          "light": "#1565A0"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.typescript",
+        "description": "%color.typescript%",
+        "defaults": {
+          "dark": "#4D9BE6",
+          "light": "#1D6FD6"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.javascript",
+        "description": "%color.javascript%",
+        "defaults": {
+          "dark": "#EBD94F",
+          "light": "#8A7300"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.dart",
+        "description": "%color.dart%",
+        "defaults": {
+          "dark": "#55CDFC",
+          "light": "#0277A8"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.python",
+        "description": "%color.python%",
+        "defaults": {
+          "dark": "#FFB13B",
+          "light": "#A85B00"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.go",
+        "description": "%color.go%",
+        "defaults": {
+          "dark": "#00B4D8",
+          "light": "#00728A"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.rust",
+        "description": "%color.rust%",
+        "defaults": {
+          "dark": "#D2691E",
+          "light": "#8A3D0B"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.jvm",
+        "description": "%color.jvm%",
+        "defaults": {
+          "dark": "#E05C4B",
+          "light": "#A32B1C"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.swift",
+        "description": "%color.swift%",
+        "defaults": {
+          "dark": "#FF8A5B",
+          "light": "#B34A20"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.ruby",
+        "description": "%color.ruby%",
+        "defaults": {
+          "dark": "#E06C75",
+          "light": "#B3232E"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.php",
+        "description": "%color.php%",
+        "defaults": {
+          "dark": "#8993BE",
+          "light": "#4A5490"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.cfamily",
+        "description": "%color.cfamily%",
+        "defaults": {
+          "dark": "#659AD2",
+          "light": "#2A5D9E"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.csharp",
+        "description": "%color.csharp%",
+        "defaults": {
+          "dark": "#9B7FD4",
+          "light": "#5B3FA8"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.html",
+        "description": "%color.html%",
+        "defaults": {
+          "dark": "#E8845C",
+          "light": "#B33F14"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.css",
+        "description": "%color.css%",
+        "defaults": {
+          "dark": "#CC6699",
+          "light": "#9B2F63"
+        }
+      },
+      {
+        "id": "autoCloseClassifiedTabs.xml",
+        "description": "%color.xml%",
+        "defaults": {
+          "dark": "#A8B545",
+          "light": "#5E6B10"
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -w -p ./",
+    "typecheck": "tsc -p ./ --noEmit",
+    "test": "npm run compile && node --test out/*.test.js scripts/*.test.js",
+    "test:e2e": "npm run compile && vscode-test",
+    "package": "node -e \"require('node:fs').mkdirSync('vsix',{recursive:true})\" && vsce package --out vsix/auto-close-classified-tabs.vsix",
+    "clean": "rm -rf out vsix .vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.4.0",
+    "@types/vscode": "^1.88.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^3.9.2",
+    "typescript": "^7.0.2"
+  }
+}

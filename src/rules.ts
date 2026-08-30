@@ -162,9 +162,11 @@ function ruleMatches(path: string, key: string): boolean {
   return k.includes('/') ? path.includes(k) : path.endsWith(k);
 }
 
+/** 差分ビューのスキーム。パスは小文字化して比べているので、スキームも揃える。 */
+const DIFF_SCHEMES = new Set(['git', 'gitfs', 'gitlens', 'review', 'conflictresolution']);
+
 function isDiffScheme(scheme: string): boolean {
-  return scheme === 'git' || scheme === 'gitfs' || scheme === 'gitlens'
-    || scheme === 'review' || scheme === 'conflictResolution';
+  return DIFF_SCHEMES.has(scheme.toLowerCase());
 }
 
 /** 拡張子・ファイル名・パスから決まる分類。ユーザー設定は見ない。 */
@@ -247,6 +249,8 @@ export function buildLabelPatterns(): Record<string, string> {
   for (const [icon, names] of dotByIcon) {
     // .env は .env.local のように後ろへ伸びるので、そこだけ前方一致にする。
     // 他を前方一致にすると .eslintrc.json が拡張子側のパターンと競合してしまう。
+    // 拡張子側にも `**/*.{env}` が出るが重複ではない。あちらは `foo.env`、こちらは
+    // `.env` / `.env.local` を拾う。片方を消すともう片方の形が無色になる。
     const key = names.length === 1 && names[0] === '.env'
       ? '**/.env*'
       : `**/{${names.sort().join(',')}}`;

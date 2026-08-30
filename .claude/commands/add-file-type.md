@@ -32,16 +32,17 @@ argument-hint: [拡張子や種別の説明（例: .kdl を設定ファイルと
 | `GENERATED_SUFFIXES` | 自動生成物。拡張子より優先される |
 | `TEST_MARKERS` / `TEST_DIRS` | テストファイルの判定 |
 
-#### 新しい色 ID を足す場合 — 4 箇所すべて
+#### 新しい色 ID を足す場合 — 5 箇所すべて
 
 | ファイル | 追加するもの |
 |----------|-------------|
 | `src/rules.ts` | `ColorId` の union と `COLOR_IDS` 配列の両方 |
 | `package.json` | `contributes.colors` に `autoCloseClassifiedTabs.<id>`（`dark` と `light` の 2 色。`highContrast` は自動でフォールバックする） |
+| `package.json` | `maxTabsByType` の `propertyNames.enum`（種別上限のキーとして書けるようにする） |
 | `package.nls.json` | `color.<id>` の英語説明 |
 | `package.nls.ja.json` | `color.<id>` の日本語説明 |
 
-**この 4 つがずれていると `npm test` の整合性テストが落ちる。** 落ちたら足し忘れを疑う。
+**この 5 つがずれていると `npm test` の整合性テストが落ちる。** 落ちたら足し忘れを疑う。
 
 ### 3. 色を選ぶときの指針
 

@@ -14,12 +14,17 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 - Tab label colors now follow [GitHub Linguist](https://github.com/github-linguist/linguist),
   the palette GitHub uses for the language bar on a repository, so a `.ts` tab is
-  TypeScript blue and a `.rb` tab is Ruby red. Linguist picks those values for small solid
-  dots, so the lightness is shifted per theme to keep a label readable while the hue and
-  saturation are kept as they are. `diff`, `test` and `generated` are states rather than
-  languages and have no Linguist color, so they are unchanged, and `json` keeps its green
-  too — the Linguist value is a near-black `#292929` that a tab cannot tell apart from
-  `generated` gray. Anything you set in `workbench.colorCustomizations` still wins.
+  TypeScript blue. Linguist picks those values for small solid dots, so the lightness is
+  shifted per theme to keep a label readable while the hue and saturation are kept as they
+  are. `diff`, `test` and `generated` are states rather than languages and have no Linguist
+  color, so they are unchanged, and `json` keeps its green too — the Linguist value is a
+  near-black `#292929` that a tab cannot tell apart from `generated` gray. Anything you set
+  in `workbench.colorCustomizations` still wins.
+- No file type is red, orange or yellow any more. A tab label is where VS Code paints
+  errors and warnings, and a type wearing those hues reads as a problem that is not there.
+  The eleven types Linguist puts in the warm band — `javascript`, `yaml`, `ruby`, `swift`,
+  `cfamily`, `rust`, `jvm`, `sql`, `env`, `toml` and `html` — moved to the cool side of the
+  wheel: JavaScript is pink, YAML teal, Ruby periwinkle, HTML green, `.env` magenta.
 
 ## [0.0.1] — 2026-08-30
 

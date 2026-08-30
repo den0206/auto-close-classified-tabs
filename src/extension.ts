@@ -22,21 +22,26 @@ function tabKey(tab: vscode.Tab): string | undefined {
   return undefined; // ターミナル / Webview などは対象外
 }
 
+/** タブが指す URI。タブのコンテキストメニューが渡してくるものと同じ(差分は modified 側)。 */
+function tabResource(tab: vscode.Tab): vscode.Uri | undefined {
+  const i = tab.input;
+  if (i instanceof vscode.TabInputText) return i.uri;
+  if (i instanceof vscode.TabInputNotebook) return i.uri;
+  if (i instanceof vscode.TabInputCustom) return i.uri;
+  if (i instanceof vscode.TabInputTextDiff) return i.modified;
+  if (i instanceof vscode.TabInputNotebookDiff) return i.modified;
+  return undefined;
+}
+
+function isDiffTab(tab: vscode.Tab): boolean {
+  return tab.input instanceof vscode.TabInputTextDiff
+    || tab.input instanceof vscode.TabInputNotebookDiff;
+}
+
 /** タブが指しているファイルの種別。色分けと同じ判定を使う。 */
 function tabType(tab: vscode.Tab, rules: Record<string, string>): string | undefined {
-  const i = tab.input;
-  if (i instanceof vscode.TabInputTextDiff) {
-    return categorize(i.modified.path, i.modified.scheme, rules, true)?.color;
-  }
-  if (i instanceof vscode.TabInputNotebookDiff) {
-    return categorize(i.modified.path, i.modified.scheme, rules, true)?.color;
-  }
-  const uri =
-    i instanceof vscode.TabInputText ? i.uri
-    : i instanceof vscode.TabInputNotebook ? i.uri
-    : i instanceof vscode.TabInputCustom ? i.uri
-    : undefined;
-  return uri && categorize(uri.path, uri.scheme, rules)?.color;
+  const uri = tabResource(tab);
+  return uri && categorize(uri.path, uri.scheme, rules, isDiffTab(tab))?.color;
 }
 
 function collect(rules: Record<string, string>): TabLike[] {
@@ -164,19 +169,27 @@ async function restoreDecorationDefaults(): Promise<void> {
   );
 }
 
-async function toggleProtect(uri?: vscode.Uri): Promise<void> {
-  if (uri) {
-    // 右クリックしたタブがアクティブとは限らないので、先に前面に出す
-    try {
-      await vscode.window.showTextDocument(uri, { preview: false });
-    } catch {
-      /* テキスト以外のエディタはアクティブなタブをそのまま対象にする */
-    }
-  }
-  const tab = vscode.window.tabGroups.activeTabGroup.activeTab;
-  if (!tab) return;
+/**
+ * 右クリックされたタブのピン留めを切り替える。タブのコンテキストメニューは
+ * `(resource, { groupId, editorIndex })` を渡してくるので、**そのまま**組み込みコマンドへ流し、
+ * どのエディタが対象かは VS Code に解決させる。
+ *
+ * 自前で `showTextDocument` して前面に出してはいけない。差分・ノートブック・カスタム
+ * エディタのタブでは同じファイルのテキストタブが新しく開いて**そちら**がピン留めされ、
+ * 目的のタブは無保護のまま残る。別グループのタブならアクティブなグループへ移動もしてしまう。
+ * ピン留めか解除かの判定にだけ、URI から対象のタブを引く。
+ */
+async function toggleProtect(...args: unknown[]): Promise<void> {
+  const uri = args[0] instanceof vscode.Uri ? args[0] : undefined;
+  const target = uri
+    ? vscode.window.tabGroups.all
+        .flatMap((group) => group.tabs)
+        .find((tab) => tabResource(tab)?.toString() === uri.toString())
+    : vscode.window.tabGroups.activeTabGroup.activeTab;
+  if (!target) return;
   await vscode.commands.executeCommand(
-    tab.isPinned ? 'workbench.action.unpinEditor' : 'workbench.action.pinEditor',
+    target.isPinned ? 'workbench.action.unpinEditor' : 'workbench.action.pinEditor',
+    ...args,
   );
 }
 

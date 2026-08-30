@@ -2,7 +2,7 @@
   "name": "auto-close-classified-tabs",
   "displayName": "Auto Close Classified Tabs",
   "description": "%extension.description%",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "yuuki-sakai",
   "icon": "media/icon.png",
   "license": "MIT",

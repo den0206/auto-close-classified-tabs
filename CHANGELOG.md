@@ -8,6 +8,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.0.2] — 2026-08-30
+
 ### Changed
 
 - Tab label colors now follow [GitHub Linguist](https://github.com/github-linguist/linguist),

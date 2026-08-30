@@ -1,0 +1,10 @@
+{
+  "Enable it": "有効にする",
+  "Later": "後で",
+  "Type icons added to tab names.": "タブ名に種別アイコンを付けました。",
+  "Type icons removed from tab names.": "タブ名から種別アイコンを取り除きました。",
+  "Type: {0}": "種別: {0}",
+  "Show file type colors on tabs only? This turns on tab decorations and leaves the Explorer plain.": "ファイル種別の色をタブにだけ表示しますか? タブの装飾を有効にし、エクスプローラーは素の表示にします。",
+  "Colors and badges now show on tabs only. The Explorer is left plain.": "色とバッジをタブにだけ表示するようにしました。エクスプローラーは素の表示になります。",
+  "Decoration settings restored. The Explorer shows Git colors and badges again.": "装飾の設定を既定に戻しました。エクスプローラーに Git の色とバッジが再び表示されます。"
+}

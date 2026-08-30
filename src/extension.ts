@@ -15,6 +15,8 @@ let timer: NodeJS.Timeout | undefined;
 let noticeShown = false;
 /** 実行中の掃除。次の掃除はこれの後ろに並ぶ(下の `sweep` を参照)。 */
 let pending: Promise<number> = Promise.resolve(0);
+/** `enableTabDecorations` を実行する前の 4 設定の値。永続化はしない。 */
+let decorationBackup: Array<boolean | undefined> | undefined;
 
 /** タブの安定キー。undefined を返したタブは閉じない・数えない。 */
 function tabKey(tab: vscode.Tab): string | undefined {
@@ -180,18 +182,28 @@ async function offerTabDecorations(): Promise<void> {
   if (picked === yes) await vscode.commands.executeCommand('autoCloseClassifiedTabs.enableTabDecorations');
 }
 
+/** `enableTabDecorations` が書き換える 4 つの設定と、有効にしたときの値。 */
+const DECORATION_SETTINGS = [
+  ['workbench.editor.decorations', 'colors', true],
+  ['workbench.editor.decorations', 'badges', true],
+  ['explorer.decorations', 'colors', false],
+  ['explorer.decorations', 'badges', false],
+] as const;
+
 /**
  * `explorer.decorations.*` は全プロバイダー共通のスイッチなので、これを切ると Git の色と
  * バッジ(M / U)や問題の件数もエクスプローラーから消える。タブ側の装飾はそのまま残る。
  */
 async function enableTabDecorations(): Promise<void> {
-  const editorCfg = vscode.workspace.getConfiguration('workbench.editor.decorations');
-  await editorCfg.update('colors', true, vscode.ConfigurationTarget.Global);
-  await editorCfg.update('badges', true, vscode.ConfigurationTarget.Global);
+  // 取り消したときに VS Code の既定ではなく**ユーザーが元々書いていた値**へ戻せるよう、
+  // 書き換える前の設定を控える。永続化はしない(ウィンドウを閉じれば消える)。
+  decorationBackup = DECORATION_SETTINGS.map(([section, key]) =>
+    vscode.workspace.getConfiguration(section).inspect<boolean>(key)?.globalValue);
 
-  const explorerCfg = vscode.workspace.getConfiguration('explorer.decorations');
-  await explorerCfg.update('colors', false, vscode.ConfigurationTarget.Global);
-  await explorerCfg.update('badges', false, vscode.ConfigurationTarget.Global);
+  for (const [section, key, value] of DECORATION_SETTINGS) {
+    await vscode.workspace.getConfiguration(section)
+      .update(key, value, vscode.ConfigurationTarget.Global);
+  }
 
   void vscode.window.showInformationMessage(
     vscode.l10n.t('Colors and badges now show on tabs only. The Explorer is left plain. "Restore Default Colors and Badges" undoes this — run it before uninstalling, since VS Code leaves these settings behind.'),
@@ -199,17 +211,19 @@ async function enableTabDecorations(): Promise<void> {
 }
 
 /**
- * `enableTabDecorations` が書いた 4 つの設定を消して VS Code の既定へ戻す。
+ * `enableTabDecorations` が書いた 4 つの設定を元へ戻す。
  * 設定を書くコマンドには必ず取り消す相手を用意する(`applyLabelIcons` と `removeLabelIcons` も同じ関係)。
+ *
+ * 同じウィンドウで有効化していれば**その前の値**へ、そうでなければ設定ごと消して
+ * VS Code の既定へ戻す。控えを永続化しないので、別のウィンドウや再起動後は後者になる。
  */
 async function restoreDecorationDefaults(): Promise<void> {
-  const editorCfg = vscode.workspace.getConfiguration('workbench.editor.decorations');
-  await editorCfg.update('colors', undefined, vscode.ConfigurationTarget.Global);
-  await editorCfg.update('badges', undefined, vscode.ConfigurationTarget.Global);
-
-  const explorerCfg = vscode.workspace.getConfiguration('explorer.decorations');
-  await explorerCfg.update('colors', undefined, vscode.ConfigurationTarget.Global);
-  await explorerCfg.update('badges', undefined, vscode.ConfigurationTarget.Global);
+  const backup = decorationBackup;
+  for (const [i, [section, key]] of DECORATION_SETTINGS.entries()) {
+    await vscode.workspace.getConfiguration(section)
+      .update(key, backup?.[i], vscode.ConfigurationTarget.Global);
+  }
+  decorationBackup = undefined;
 
   // 再び案内を出すと、戻したばかりの設定をもう一度勧めることになる
   noticeShown = true;
@@ -362,4 +376,5 @@ export function deactivate(): void {
   timer = undefined;
   lru.dispose();
   noticeShown = false;
+  decorationBackup = undefined;
 }

@@ -144,7 +144,9 @@ carry a real extension keeps that format's color, so `.eslintrc.json` is JSON gr
 `.eslintrc.yaml` is YAML mint.
 
 Rules are checked in this order: diff, test, generated, then the extension. Your
-`colors.rules` entries override the **color** and leave the icon alone.
+`colors.rules` entries override the **color** and leave the icon alone. When more than one
+of your rules matches a file, the **longest key wins**, so reordering `settings.json` never
+changes a color.
 
 Colors are contributed as theme colors, so you can change any of them:
 

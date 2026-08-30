@@ -107,6 +107,19 @@ test('拡張子の無いファイル名も判定できる', () => {
   assert.equal(cat('/a/LICENSE'), 'docs');
 });
 
+test('複数のルールが当たったら長いキーが勝つ', () => {
+  // settings.json の並べ替えで色が変わらないこと(記述順に依存しない)
+  const rules = { '.ts': 'docs', 'src/api/': 'json' };
+  const reversed = { 'src/api/': 'json', '.ts': 'docs' };
+  assert.equal(cat('/a/src/api/client.ts', 'file', rules), 'json');
+  assert.equal(cat('/a/src/api/client.ts', 'file', reversed), 'json');
+  assert.equal(cat('/a/src/ui/view.ts', 'file', rules), 'docs');
+});
+
+test('長いキーの種別が不正なら次に長いキーへ落ちる', () => {
+  assert.equal(cat('/a/src/api/client.ts', 'file', { 'src/api/': 'rainbow', '.ts': 'docs' }), 'docs');
+});
+
 test('未知の種別を指定した設定は無視して落ちない', () => {
   // 綴り間違いで装飾ごと消えず、拡張子の判定に戻る
   assert.equal(cat('/a/main.dart', 'file', { '.dart': 'rainbow' }), 'dart');

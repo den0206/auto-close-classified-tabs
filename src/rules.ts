@@ -207,8 +207,12 @@ export function categorize(
   const p = path.toLowerCase();
   const base = preset(p, scheme, isDiffTab);
 
-  for (const [key, value] of Object.entries(userRules)) {
-    if (!ruleMatches(p, key)) continue;
+  // 複数のルールが当たったら**最も長いキー**が勝つ。記述順で決めると settings.json を
+  // 並べ替えただけで色が変わってしまう(`{ ".ts": …, "src/": … }` のような組み合わせ)。
+  const matches = Object.entries(userRules)
+    .filter(([key]) => ruleMatches(p, key))
+    .sort(([a], [b]) => b.length - a.length);
+  for (const [, value] of matches) {
     const color = value as ColorId;
     if (!COLOR_IDS.includes(color)) continue; // 綴り間違いで装飾ごと消さない。拡張子の判定を残す
     return { ...(base ?? GENERIC), color };

@@ -1,0 +1,84 @@
+# Changelog
+
+Written in English so the public extension pages (Open VSX / Marketplace) read the same
+for everyone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+and versions follow [Semantic Versioning](https://semver.org/).
+
+`[Unreleased]` holds changes for the next release.
+
+## [Unreleased]
+
+### Changed
+
+- Renamed to Auto Close Classified Tabs. The settings, theme color IDs and command IDs all
+  moved to the `autoCloseClassifiedTabs` prefix. Nothing had shipped yet, so this breaks
+  no existing configuration.
+
+### Added
+
+- An icon (`media/icon.png`), drawn from `media/icon.svg`.
+- A demo GIF and the icon at the top of both READMEs.
+- A release workflow (`.github/workflows/release.yml`): pushing a `release/Ver_X.Y.Z`
+  branch runs the tests, builds the VSIX, cuts `[Unreleased]` into a version heading with
+  `scripts/release-changelog.js`, creates the GitHub Release, and publishes to Open VSX
+  when the `OVSX_TOKEN` secret is set — that step is skipped with a warning when it is not.
+- **Restore Default Colors and Badges** removes the four settings written by **Show Type
+  Colors on Tabs Only**, so every command that writes a setting now has one that undoes it.
+
+### Fixed
+
+- A misspelled type in `autoCloseClassifiedTabs.colors.rules` no longer strips the file of
+  all decoration; the entry is ignored and the extension falls back to the file extension.
+- Tabs that cannot be closed (terminals, webviews) no longer count toward the "last tab in
+  the group" rule, so the last editor beside a terminal is kept open.
+- The `colors.rules` examples in the settings descriptions and both READMEs used type names
+  that do not exist (`config`, `systems`), which would have produced no decoration at all.
+
+## [0.1.0] — 2026-08-30
+
+### Added
+
+- Tabs beyond `autoCloseClassifiedTabs.maxTabs` (default 3, counted per editor group) are closed
+  automatically, least recently used first. Unsaved, pinned and active tabs are never
+  closed, and neither is the last tab in a group — losing it would collapse the split.
+  Preview tabs go first when `autoCloseClassifiedTabs.closePreviewFirst` is on, since a tab opened
+  by a single click is rarely one you meant to keep.
+- `autoCloseClassifiedTabs.maxTabsByType` caps how many tabs of one kind stay open, and runs before
+  `maxTabs`. Diffs default to 1: a diff opened three files ago is rarely one you still
+  want, and left alone it eats the general budget that your actual code files need. A type
+  that is not listed is bound only by `maxTabs`, which is what keeps editing files out of
+  it. Whatever the per-type pass closes is subtracted from the general count, so the two
+  passes never close the same slot twice.
+- Pinning a tab protects it from auto close. The right-click entry "Protect From Auto
+  Close" toggles the built-in pin rather than keeping a list of its own, so nothing has
+  to be stored anywhere and the state survives exactly as long as VS Code keeps it.
+- Tab labels are colored by file type through `FileDecorationProvider`: 26 colors, one
+  per language or file format, following each language's own color where it has one.
+  Config files are split by format rather than lumped together, so `settings.json` and
+  `pubspec.yaml` do not come out the same shade. Badges are also provided, but VS Code
+  draws only the color on a tab — the badge reaches the Explorer and the Open Editors
+  view and stops there. Dotfiles are matched by name rather than extension, so
+  `.gitignore` and `.env.local` are colored too, while `.eslintrc.json` still follows its
+  real format.
+- "Show Type Colors on Tabs Only" turns on `workbench.editor.decorations.colors` and
+  `.badges`, and turns off `explorer.decorations.colors` and `.badges`. The first pair is
+  off by default in VS Code and nothing is drawn on a tab without them; the second pair
+  leaves the Explorer plain. A decoration provider cannot tell which surface is asking, so
+  those switches are the only way to separate the two — and because every provider shares
+  them, the colors and `M` / `U` / error-count badges Git and the problem markers put in
+  the Explorer go away with them.
+- "Add Type Icons to Tab Names" writes emoji prefixes into
+  `workbench.editor.customLabels.patterns` (`🎯 main.dart`), and its counterpart removes
+  exactly the patterns it wrote, leaving any the user added by hand. Every extension gets
+  its own symbol, which is what separates `{} settings.json` from `📋 pubspec.yaml` where
+  the colors alone would be close. Since badges never reach a tab, this is the only way
+  to put a symbol on one.
+- `autoCloseClassifiedTabs.colors.rules` overrides the color of a file, leaving its icon alone. A key containing `/` matches
+  anywhere in the path, otherwise it matches the end of it — deliberately weaker than
+  glob so that no dependency is needed and no pattern can backtrack.
+
+### Notes
+
+- The extension stores nothing: no `globalState`, no `workspaceState`, no files, no
+  network. Tab usage order lives in memory only and goes away with the window. It has no
+  runtime dependencies.

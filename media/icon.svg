@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A5B4FC"/>
+      <stop offset="1" stop-color="#4F46E5"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- エディタ本体 -->
+  <rect x="48" y="160" width="416" height="256" rx="32" fill="#ffffff"/>
+  <rect x="88" y="224" width="216" height="18" rx="9" fill="#C7D2FE"/>
+  <rect x="88" y="276" width="304" height="18" rx="9" fill="#E0E7FF"/>
+  <rect x="88" y="328" width="160" height="18" rx="9" fill="#E0E7FF"/>
+
+  <!-- タブ。種別ごとに色が変わることが主役なので、タブそのものを塗る -->
+  <rect x="48" y="80" width="128" height="96" rx="24" fill="#4D9BE6"/>
+  <rect x="74" y="116" width="76" height="16" rx="8" fill="#ffffff" opacity="0.92"/>
+
+  <rect x="192" y="80" width="128" height="96" rx="24" fill="#FFB13B"/>
+  <rect x="218" y="116" width="76" height="16" rx="8" fill="#ffffff" opacity="0.92"/>
+
+  <!-- 3 枚目は閉じられる途中 -->
+  <rect x="336" y="80" width="128" height="96" rx="24" fill="#4EC9A0" opacity="0.62"/>
+  <g stroke="#ffffff" stroke-width="20" stroke-linecap="round">
+    <line x1="376" y1="104" x2="424" y2="152"/>
+    <line x1="424" y1="104" x2="376" y2="152"/>
+  </g>
+</svg>

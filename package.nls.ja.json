@@ -1,6 +1,7 @@
 {
   "extension.description": "使っていないタブを閉じ、ファイルの種別ごとにタブの色を変える",
   "extension.category": "Auto Close Classified Tabs",
+  "capabilities.untrustedWorkspaces.description": "開いているタブのパスしか見ません。ファイルの中身は読みません。",
   "configuration.title": "Auto Close Classified Tabs",
   "configuration.enabled.description": "使っていないタブを自動で閉じます。",
   "configuration.maxTabs.description": "エディタグループごとに残すタブの数。未保存とピン留めのタブは決して閉じないため、実際の数がこれを上回ることがあります。",

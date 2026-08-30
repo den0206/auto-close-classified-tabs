@@ -1,6 +1,7 @@
 {
   "extension.description": "Close tabs you are not using and color tab labels by file type",
   "extension.category": "Auto Close Classified Tabs",
+  "capabilities.untrustedWorkspaces.description": "Only the path of an open tab is inspected. File contents are never read.",
   "configuration.title": "Auto Close Classified Tabs",
   "configuration.enabled.description": "Close unused tabs automatically.",
   "configuration.maxTabs.description": "How many tabs to keep in each editor group. Unsaved and pinned tabs are never closed, so the actual count can go above this.",

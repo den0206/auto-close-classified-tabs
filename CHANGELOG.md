@@ -8,6 +8,36 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- A file open in two editor groups is no longer closed in both. The key used to pick tabs
+  was the URI alone, so a decision made for one group also took out the copy in the other —
+  including one that was pinned or active, which the extension promises never to close.
+  The key now carries the group; the usage order stays per file.
+- **Protect From Auto Close** read the pin state off the first tab matching the URI, which
+  could belong to a different group than the one being acted on, turning the toggle into a
+  no-op. It now prefers the tab in the active group.
+- Sweeps run one at a time. Two overlapping sweeps made the second one grab a tab the first
+  had already closed, which threw and closed nothing, so **Close Unused Tabs Now** reported
+  "no tabs to close" when there were.
+- **Remove Type Icons From Tab Names** no longer deletes patterns you wrote yourself. It
+  matched anything under `**/` carrying one of its emoji, so `"**/vendor/*.js": "🟨 ${filename}"`
+  went with it. It now only removes keys shaped the way it writes them.
+- Diff detection no longer depends on how a URI scheme is capitalized.
+
+### Changed
+
+- Tab label colors are measured with CIEDE2000 instead of CIE76, and nine of them moved to
+  clear a floor of ΔE 6. CIE76 overstates differences among blues, which is exactly where
+  this palette is most crowded: in the light theme `typescript` and `xml` were 1.8 apart —
+  effectively the same color on a tab — while CIE76 reported a comfortable 7.0. `python`,
+  `xml`, `ruby`, `toml`, `env`, `sql`, `swift` and `javascript` shifted with it; most moves
+  are too small to notice.
+- Every type color now clears 4.5:1 against the default editor background (WCAG AA for
+  normal text). Six did not: `csharp` in dark, and `test`, `css`, `dart`, `shell` and `go`
+  in light. Light `shell` (2.84:1) and `dart` (2.59:1) were the worst and are noticeably
+  deeper now. `generated` is exempt — fading into the background is its job.
+
 ## [0.0.2] — 2026-08-30
 
 ### Changed

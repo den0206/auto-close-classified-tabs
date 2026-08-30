@@ -8,7 +8,6 @@
 // 後から main を直しても公開ページは `Unreleased` のままになる。
 //
 // 何度呼んでも安全（そのバージョンの見出しが既にあれば何もしない）。
-// `+N` 再ビルドは同じ X.Y.Z を共有するため、2 回目以降は自然と no-op になる。
 
 const fs = require('fs');
 const path = require('path');

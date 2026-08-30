@@ -281,6 +281,27 @@ suite('auto-close-classified-tabs', () => {
     );
   });
 
+  test('同じ記号を使ったユーザー自身のパターンは消さない', async () => {
+    const key = 'workbench.editor.customLabels.patterns';
+    const read = () => vscode.workspace.getConfiguration().get<Record<string, string>>(key);
+    const before = read();
+    // 値(記号)は拡張が書くものと同じだが、キーの形が違うのでユーザーのもの
+    await vscode.workspace.getConfiguration().update(key, {
+      '**/vendor/*.js': '🟨 ${filename}',
+    }, vscode.ConfigurationTarget.Global);
+
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.applyLabelIcons');
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.removeLabelIcons');
+
+    const after = read() ?? {};
+    assert.deepEqual(
+      Object.keys(after),
+      ['**/vendor/*.js'],
+      `ユーザー自身のパターンを消した: ${JSON.stringify(after)}`,
+    );
+    await vscode.workspace.getConfiguration().update(key, before, vscode.ConfigurationTarget.Global);
+  });
+
   test('旧版が書いた種別アイコンのパターンも取り除ける', async () => {
     const key = 'workbench.editor.customLabels.patterns';
     const read = () => vscode.workspace.getConfiguration().get<Record<string, string>>(key);

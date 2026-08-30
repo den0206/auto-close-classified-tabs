@@ -198,6 +198,31 @@ test('マニフェストの %key% がすべて nls に定義されている', ()
   }
 });
 
+test('l10n の日本語バンドルがソースの文言と一対一で対応している', () => {
+  // `vscode.l10n.t()` のキーは英語の原文そのもの。文言を直すとキーが変わるので、
+  // 訳が置き去りになったり(= 日本語環境で英語が出る)、使わない訳が残ったりしやすい
+  const source = ['extension.ts', 'decorate.ts']
+    .map((f) => fs.readFileSync(path.join(root, 'src', f), 'utf8'))
+    .join('\n');
+  const used = [...source.matchAll(/vscode\.l10n\.t\(\s*(['"])((?:\\.|(?!\1).)*)\1/g)]
+    .map((m) => m[2]!.replace(/\\'/g, "'"));
+  assert.ok(used.length >= 8, `l10n.t の抽出に失敗した (${used.length} 件)`);
+
+  const bundle = readJson('l10n/bundle.l10n.ja.json');
+  assert.deepEqual(
+    [...new Set(used)].sort(),
+    Object.keys(bundle).sort(),
+    'ソースの文言と日本語バンドルのキーが食い違っている',
+  );
+});
+
+test('maxTabsByType のキーの enum が色 ID と一致している', () => {
+  // タイポ(`diffs` など)を設定 UI の側で弾くための enum。増やした色を書き忘れると効かなくなる
+  const schema = readJson('package.json')
+    .contributes.configuration.properties['autoCloseClassifiedTabs.maxTabsByType'];
+  assert.deepEqual([...schema.propertyNames.enum].sort(), [...COLOR_IDS].sort());
+});
+
 test('実行時依存パッケージを増やしていない', () => {
   assert.equal(readJson('package.json').dependencies, undefined);
 });

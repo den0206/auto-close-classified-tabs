@@ -53,6 +53,36 @@
           "default": {
             "diff": 1
           },
+          "propertyNames": {
+            "enum": [
+              "diff",
+              "test",
+              "generated",
+              "docs",
+              "json",
+              "yaml",
+              "toml",
+              "env",
+              "sql",
+              "shell",
+              "docker",
+              "typescript",
+              "javascript",
+              "dart",
+              "python",
+              "go",
+              "rust",
+              "jvm",
+              "swift",
+              "ruby",
+              "php",
+              "cfamily",
+              "csharp",
+              "html",
+              "css",
+              "xml"
+            ]
+          },
           "additionalProperties": {
             "type": "integer",
             "minimum": 0

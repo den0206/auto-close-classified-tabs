@@ -87,7 +87,7 @@ async function sweep(force = false): Promise<number> {
 
   const rules = cfg.get<Record<string, string>>('colors.rules', {}) ?? {};
   const doomed = new Set(pickTabsToClose(collect(rules), {
-    maxTabs: cfg.get<number>('maxTabs', 3),
+    maxTabs: cfg.get<number>('maxTabs', 4),
     closePreviewFirst: cfg.get<boolean>('closePreviewFirst', true),
     maxTabsByType: cfg.get<Record<string, number>>('maxTabsByType', {}) ?? {},
   }));

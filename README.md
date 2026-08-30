@@ -67,7 +67,7 @@ same thing.
 | Setting | Default | What it does |
 |---|---|---|
 | `autoCloseClassifiedTabs.enabled` | `true` | Close unused tabs automatically |
-| `autoCloseClassifiedTabs.maxTabs` | `3` | Tabs to keep per editor group |
+| `autoCloseClassifiedTabs.maxTabs` | `4` | Tabs to keep per editor group |
 | `autoCloseClassifiedTabs.maxTabsByType` | `{"diff": 1}` | Per-type limits, applied before `maxTabs` |
 | `autoCloseClassifiedTabs.closeOnStartup` | `true` | Close tabs right after a window opens |
 | `autoCloseClassifiedTabs.closePreviewFirst` | `true` | Close preview (italic) tabs first |

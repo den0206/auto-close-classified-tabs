@@ -65,7 +65,7 @@ VS Code 標準のピン留めを切り替えるだけなので、保護リスト
 | 設定 | 既定値 | 説明 |
 |---|---|---|
 | `autoCloseClassifiedTabs.enabled` | `true` | 自動クローズの有効・無効 |
-| `autoCloseClassifiedTabs.maxTabs` | `3` | エディタグループごとに残すタブの数 |
+| `autoCloseClassifiedTabs.maxTabs` | `4` | エディタグループごとに残すタブの数 |
 | `autoCloseClassifiedTabs.maxTabsByType` | `{"diff": 1}` | 種別ごとの上限。`maxTabs` より先に適用 |
 | `autoCloseClassifiedTabs.closeOnStartup` | `true` | ウィンドウを開いた直後にタブを閉じる |
 | `autoCloseClassifiedTabs.closePreviewFirst` | `true` | プレビュータブ(斜体)を先に閉じる |

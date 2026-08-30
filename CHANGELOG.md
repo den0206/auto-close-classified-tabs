@@ -23,6 +23,7 @@ and versions follow [Semantic Versioning](https://semver.org/).
   The eleven types Linguist puts in the warm band — `javascript`, `yaml`, `ruby`, `swift`,
   `cfamily`, `rust`, `jvm`, `sql`, `env`, `toml` and `html` — moved to the cool side of the
   wheel: JavaScript is pink, YAML teal, Ruby periwinkle, HTML green, `.env` magenta.
+- `autoCloseClassifiedTabs.maxTabs` now defaults to 4 instead of 3.
 
 ## [0.0.1] — 2026-08-30
 

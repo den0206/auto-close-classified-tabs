@@ -67,7 +67,7 @@ jobs:
           unzip -l vsix/auto-close-classified-tabs.vsix | grep -q 'l10n/bundle.l10n.ja.json' \
             || { echo "::error::l10n バンドルが VSIX に入っていません"; exit 1; }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: vsix-package
           path: vsix/*.vsix

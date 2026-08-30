@@ -106,7 +106,7 @@ jobs:
           unzip -l vsix/auto-close-classified-tabs.vsix | grep -q 'media/icon.png' \
             || { echo "::error::アイコンが VSIX に入っていません"; exit 1; }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: auto-close-classified-tabs-${{ github.run_number }}
           path: vsix/*.vsix

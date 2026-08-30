@@ -129,6 +129,21 @@ suite('auto-close-classified-tabs', () => {
     }
   });
 
+  test('「今すぐ閉じる」は enabled が false でも閉じる', async () => {
+    await setConfig('enabled', false);
+    try {
+      await openAll(['n1.ts', 'n2.ts', 'n3.ts', 'n4.ts', 'n5.ts']);
+      assert.equal(tabCount(), 5, '自動クローズが止まっていない');
+      await vscode.commands.executeCommand('autoCloseClassifiedTabs.closeUnused');
+      await waitFor(() => tabCount() === 3);
+      // 閉じるものが無い状態で呼んでも失敗しない(案内を出して正常終了する)
+      await vscode.commands.executeCommand('autoCloseClassifiedTabs.closeUnused');
+      assert.equal(tabCount(), 3);
+    } finally {
+      await setConfig('enabled', true);
+    }
+  });
+
   test('コマンドがすべて登録されている', async () => {
     const all = await vscode.commands.getCommands(true);
     for (const id of ['closeUnused', 'toggleProtect', 'enableTabDecorations', 'restoreDecorationDefaults', 'applyLabelIcons', 'removeLabelIcons']) {

@@ -77,9 +77,10 @@ function liveKeys(): Set<string> {
   return keys;
 }
 
-async function sweep(force = false): Promise<void> {
+/** 閉じたタブの枚数を返す。0 なら閉じられるタブが 1 枚も無かった。 */
+async function sweep(force = false): Promise<number> {
   const cfg = vscode.workspace.getConfiguration('autoCloseClassifiedTabs');
-  if (!force && !cfg.get<boolean>('enabled', true)) return;
+  if (!force && !cfg.get<boolean>('enabled', true)) return 0;
 
   const rules = cfg.get<Record<string, string>>('colors.rules', {}) ?? {};
   const doomed = new Set(pickTabsToClose(collect(rules), {
@@ -87,7 +88,7 @@ async function sweep(force = false): Promise<void> {
     closePreviewFirst: cfg.get<boolean>('closePreviewFirst', true),
     maxTabsByType: cfg.get<Record<string, number>>('maxTabsByType', {}) ?? {},
   }));
-  if (doomed.size === 0) return;
+  if (doomed.size === 0) return 0;
 
   const victims: vscode.Tab[] = [];
   for (const group of vscode.window.tabGroups.all) {
@@ -96,7 +97,17 @@ async function sweep(force = false): Promise<void> {
       if (key && doomed.has(key)) victims.push(tab);
     }
   }
-  if (victims.length > 0) await vscode.window.tabGroups.close(victims, true);
+  if (victims.length === 0) return 0;
+
+  try {
+    await vscode.window.tabGroups.close(victims, true);
+  } catch {
+    // 候補を集めてから close するまでの間にユーザーや他の拡張がそのタブを閉じていると、
+    // VS Code は `Tab close: Invalid tab not found!` を投げて **1 枚も閉じない**。
+    // タブが閉じられれば onDidChangeTabs がもう一度 sweep を呼ぶので、ここは待てばよい。
+    return 0;
+  }
+  return victims.length;
 }
 
 function schedule(): void {
@@ -105,6 +116,17 @@ function schedule(): void {
     timer = undefined;
     void sweep();
   }, DEBOUNCE_MS);
+}
+
+/**
+ * 何も閉じなかったときだけ伝える。閉じたときはタブが消えるのを見れば分かるので黙っている。
+ * 無言だとコマンドが壊れているのか、閉じる対象が無いのかをユーザーが区別できない。
+ */
+async function closeUnusedNow(): Promise<void> {
+  if (await sweep(true) > 0) return;
+  void vscode.window.showInformationMessage(
+    vscode.l10n.t('No tabs to close. Everything open is active, unsaved, pinned or the last tab in its group.'),
+  );
 }
 
 /**
@@ -250,7 +272,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (e.affectsConfiguration('autoCloseClassifiedTabs')) schedule();
     }),
 
-    vscode.commands.registerCommand('autoCloseClassifiedTabs.closeUnused', () => sweep(true)),
+    vscode.commands.registerCommand('autoCloseClassifiedTabs.closeUnused', closeUnusedNow),
     vscode.commands.registerCommand('autoCloseClassifiedTabs.toggleProtect', toggleProtect),
     vscode.commands.registerCommand('autoCloseClassifiedTabs.enableTabDecorations', enableTabDecorations),
     vscode.commands.registerCommand('autoCloseClassifiedTabs.restoreDecorationDefaults', restoreDecorationDefaults),

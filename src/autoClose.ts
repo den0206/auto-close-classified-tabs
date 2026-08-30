@@ -27,6 +27,35 @@ export interface CloseOptions {
 }
 
 /**
+ * 閉じる順の比較。preview を先に → LRU で古い順 → タブの並び順。
+ * `pickTabsToClose` と `nextToClose` で同じ順序を使うために切り出してある。
+ */
+function byCloseOrder(closePreviewFirst: boolean) {
+  return (a: TabLike, b: TabLike): number => {
+    if (closePreviewFirst && a.isPreview !== b.isPreview) return a.isPreview ? -1 : 1;
+    if (a.lastUsed !== b.lastUsed) return a.lastUsed - b.lastUsed;
+    return a.order - b.order;
+  };
+}
+
+/** 閉じてよいタブか。未保存・ピン留め・アクティブ・対象外の種別は候補にしない。 */
+function isCandidate(t: TabLike): boolean {
+  return t.closable && !t.isDirty && !t.isPinned && !t.isActive;
+}
+
+/**
+ * 上限を無視して「次に閉じられるのはどれか」を 1 つ返す。ステータスバーの表示用。
+ * 実際に閉じるかどうかは `pickTabsToClose` が上限を見て決める。
+ */
+export function nextToClose(
+  tabs: readonly TabLike[],
+  closePreviewFirst: boolean,
+): string | undefined {
+  const candidates = tabs.filter(isCandidate).sort(byCloseOrder(closePreviewFirst));
+  return candidates[0]?.key;
+}
+
+/**
  * 閉じるべきタブのキーを返す。未保存・ピン留め・アクティブ・グループ内で唯一のタブは決して含まない。
  * 保護対象ばかりで上限を割れない場合は、閉じられる分だけ返す(例外は投げない)。
  */
@@ -46,13 +75,7 @@ export function pickTabsToClose(tabs: readonly TabLike[], opts: CloseOptions): s
     const counted = list.filter((t) => t.closable);
     if (counted.length <= 1) continue; // グループに残る最後のエディタは閉じない
 
-    const candidates = counted
-      .filter((t) => !t.isDirty && !t.isPinned && !t.isActive)
-      .sort((a, b) => {
-        if (opts.closePreviewFirst && a.isPreview !== b.isPreview) return a.isPreview ? -1 : 1;
-        if (a.lastUsed !== b.lastUsed) return a.lastUsed - b.lastUsed;
-        return a.order - b.order;
-      });
+    const candidates = counted.filter(isCandidate).sort(byCloseOrder(opts.closePreviewFirst));
 
     const picked = new Set<string>();
     const take = (from: readonly TabLike[], count: number): void => {

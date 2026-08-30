@@ -115,6 +115,11 @@
           "default": true,
           "description": "%configuration.closeOnStartup.description%"
         },
+        "autoCloseClassifiedTabs.statusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "%configuration.statusBar.description%"
+        },
         "autoCloseClassifiedTabs.closePreviewFirst": {
           "type": "boolean",
           "default": true,
@@ -147,6 +152,24 @@
         "title": "%command.closeUnused.title%",
         "category": "%extension.category%",
         "icon": "$(clear-all)"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.reopenLastClosed",
+        "title": "%command.reopenLastClosed.title%",
+        "category": "%extension.category%",
+        "icon": "$(history)"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.togglePause",
+        "title": "%command.togglePause.title%",
+        "category": "%extension.category%",
+        "icon": "$(debug-pause)"
+      },
+      {
+        "command": "autoCloseClassifiedTabs.showLog",
+        "title": "%command.showLog.title%",
+        "category": "%extension.category%",
+        "icon": "$(output)"
       },
       {
         "command": "autoCloseClassifiedTabs.toggleProtect",

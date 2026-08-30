@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
-import { LruTracker, pickTabsToClose, type TabLike } from './autoClose';
+import { LruTracker, nextToClose, pickTabsToClose, type TabLike } from './autoClose';
 
 const OPTS = { maxTabs: 3, closePreviewFirst: true };
 
@@ -225,6 +225,31 @@ test('同じファイルが 2 グループにあっても片方のグループ�
     !got.includes('2\u0000file:///a.ts'),
     'ピン留めされた別グループのコピーが巻き込まれている',
   );
+});
+
+test('nextToClose は上限を見ずに次の 1 枚を返す', () => {
+  const t = tabs(
+    { key: 'old', lastUsed: 1 }, { key: 'new', lastUsed: 9, isActive: true },
+  );
+  // 上限に余裕があっても「次に閉じるならこれ」を返す(ステータスバーの表示用)
+  assert.equal(nextToClose(t, true), 'old');
+  assert.deepEqual(pickTabsToClose(t, { maxTabs: 5, closePreviewFirst: true }), []);
+});
+
+test('nextToClose も保護対象を選ばない', () => {
+  const t = tabs(
+    { key: 'dirty', lastUsed: 1, isDirty: true },
+    { key: 'pinned', lastUsed: 2, isPinned: true },
+    { key: 'term', lastUsed: 3, closable: false },
+    { key: 'ok', lastUsed: 4 },
+    { key: 'active', lastUsed: 5, isActive: true },
+  );
+  assert.equal(nextToClose(t, true), 'ok');
+});
+
+test('nextToClose は閉じられるタブが無ければ undefined', () => {
+  const t = tabs({ key: 'only', isActive: true });
+  assert.equal(nextToClose(t, true), undefined);
 });
 
 test('LruTracker: アクセスで順序が更新される', () => {

@@ -296,13 +296,14 @@ VS Code 1.88+ の公式設定。glob → ラベルテンプレートで、タブ
 なお本拡張は本体パッチ方式の拡張と**干渉しない**ので、どうしても背景色が必要な場合は
 tabscolor 等と併用できる(README には記載しない)。
 
-## 5. 設定項目(6 個)
+## 5. 設定項目(7 個)
 
 ```jsonc
 "autoCloseClassifiedTabs.enabled":           true   // 自動クローズの有効・無効
 "autoCloseClassifiedTabs.maxTabs":           4      // グループごとの上限(既定 4)
 "autoCloseClassifiedTabs.maxTabsByType": { "diff": 1 }  // 種別ごとの上限。maxTabs より先に適用
 "autoCloseClassifiedTabs.closePreviewFirst": true   // プレビュータブを優先して閉じる
+"autoCloseClassifiedTabs.statusBar":         true   // 枚数と次に閉じるタブをステータスバーに出す
 "autoCloseClassifiedTabs.colors.enabled":    true   // 色分けの有効・無効
 "autoCloseClassifiedTabs.colors.rules":      {}     // 末尾一致 / パス部分一致 → 種別 の上書き
 ```
@@ -312,6 +313,9 @@ tabscolor 等と併用できる(README には記載しない)。
 | コマンド | 内容 |
 |---|---|
 | `autoCloseClassifiedTabs.closeUnused` | 使っていないタブを今すぐ閉じる(`enabled` が false でも動く) |
+| `autoCloseClassifiedTabs.reopenLastClosed` | 直前の掃除で閉じたタブを開き直す |
+| `autoCloseClassifiedTabs.togglePause` | このウィンドウの自動クローズを止める・再開する(設定は書かない) |
+| `autoCloseClassifiedTabs.showLog` | 出力パネルのログを開く |
 | `autoCloseClassifiedTabs.toggleProtect` | 自動クローズから保護(ピン留めの切替)。タブの右クリックメニューにも出す |
 | `autoCloseClassifiedTabs.enableTabDecorations` | タブの装飾を有効化し、`explorer.decorations.colors` / `.badges` を無効化して装飾をタブだけに限定する |
 | `autoCloseClassifiedTabs.applyLabelIcons` | §4.1 ③ のパターンをユーザー設定へ書き込む |
@@ -322,6 +326,24 @@ tabscolor 等と併用できる(README には記載しない)。
 
 装飾が無効な場合の案内は 1 ウィンドウにつき 1 回だけ出す。この「出したか」はモジュール変数で持ち、
 **永続化しない**(有効化すれば条件自体が偽になり二度と出ない)。
+
+### 閉じたことを伝える(黙って消さない)
+上限方式は速いが、**何がいつ消えたのかユーザーから見えない**のが最大の弱点だった。
+インストール直後にウィンドウを開き直すと復元したタブが理由も告げずに減るので、
+「壊れた」と受け取られる。3 つ重ねて塞ぐ。
+
+| 手段 | 出るもの | 状態 |
+|---|---|---|
+| ステータスバー | `4/4` と、ホバーで次に閉じられるタブ名 | 持たない(呼ばれるたびに現在のタブから組み立てる) |
+| 出力パネル | いつ何を閉じたか | `OutputChannel` のみ |
+| `reopenLastClosed` | 直前の 1 回分を開き直す | URI 文字列と列番号の配列 1 本 |
+
+起動直後の掃除だけは通知を出す(1 ウィンドウ 1 回、実際に閉じたときだけ)。
+「開き直す」「設定」を添えて、驚いた人がその場で戻せるようにする。
+
+一時停止(`togglePause`)は**設定ファイルに書かない**。書けば取り消しコマンドを対で
+用意する原則に触れるうえ、「ちょっと止める」ために settings.json を汚すことになる。
+ウィンドウ変数で持ち、閉じれば解ける。恒久的に切るなら `enabled` を false にする。
 
 ## 7. テスト
 
@@ -412,7 +434,10 @@ CI(GitHub Actions)で両方を実行する。
 - タブ背景色 — 公式 API が存在せず本体パッチが必須のため(§4.1 参照)。代わりに 色 + 記号 の 2 軸で識別する
 - 時間経過による自動クローズ(タイマー常駐を避ける。上限方式で足りる)
 - 種別上限のグループ別名(`code` でまとめて指定する等)。色 ID をそのまま書けば足りる
-- 閉じたタブの履歴・復元(標準の `Ctrl/Cmd+Shift+T` で足りる)
+- **永続的な**閉じたタブの履歴(標準の `Ctrl/Cmd+Shift+T` で足りる)。
+  ただし**直前の 1 回分**はメモリに持ち、`reopenLastClosed` で戻せるようにした。
+  「勝手に閉じる」拡張で取り消しが無いのは、機能の不足ではなく怖さの問題だったため。
+  持つのは URI 文字列と列番号だけで、ウィンドウを閉じれば消える
 - 全言語の色網羅(プリセットは主要言語のみ。残りは設定で追加)
 - 種別ごとに色を増やすこと(9 色で打ち止め。それ以上は見分けがつかず、バッジの仕事)
 - 装飾を出したかどうかの永続化(セッション内の変数で足りる)

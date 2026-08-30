@@ -8,6 +8,22 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- A status bar item showing how many tabs the active group holds against the limit, the
+  tab that goes next on hover, and a click to close unused tabs now. Turn it off with
+  `autoCloseClassifiedTabs.statusBar`.
+- **Reopen Tabs Just Closed** brings back the tabs from the most recent sweep. The list is
+  held in memory for the window and covers one sweep; diffs and custom editors are left out
+  because there is no way to reopen those at the same URI.
+- **Show Auto Close Log** opens an output channel recording every sweep and the tab names.
+- **Pause or Resume Auto Close (This Window)** stops closing without writing to settings.
+  It resumes when the window is reopened; `autoCloseClassifiedTabs.enabled` is still the
+  switch that sticks.
+- The sweep that runs when a window opens now says how many tabs it closed, once per
+  window, with **Reopen them** and **Settings** on the notice. Installing the extension and
+  reloading used to trim a restored session with no explanation at all.
+
 ### Fixed
 
 - A file open in two editor groups is no longer closed in both. The key used to pick tabs

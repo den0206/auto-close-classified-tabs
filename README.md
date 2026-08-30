@@ -248,8 +248,8 @@ prefix. Removing `workbench.editor.decorations.*`, `explorer.decorations.*` and
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # unit tests (64, no VS Code needed)
-npm run test:e2e    # integration tests (16, launches VS Code)
+npm test            # unit tests (73, no VS Code needed)
+npm run test:e2e    # integration tests (21, launches VS Code)
 npm run package     # build vsix/auto-close-classified-tabs.vsix
 ```
 

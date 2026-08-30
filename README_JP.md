@@ -116,6 +116,14 @@ VS Code 標準のピン留めを切り替えるだけなので、保護リスト
 言語とファイル形式ごとに 1 色、全 26 色です。書式の違う設定ファイル
 (`settings.json` と `pubspec.yaml`)は別の色になるので、同じ種類のファイルでもタブを見分けられます。
 
+色相は [GitHub Linguist](https://github.com/github-linguist/linguist) — GitHub がリポジトリの
+言語バーに使っているのと同じ色 — に合わせています。`.ts` は TypeScript の青、`.rb` は Ruby の赤に
+なるので、対応を覚え直す必要がありません。Linguist の値は小さな丸ドット用に選ばれているため、
+タブのラベルとして読めるように**明度だけ**をテーマごとに寄せています(色相と彩度はそのまま)。
+`diff` `test` `generated` は言語ではなく状態で Linguist に対応する色が無いため、独自の色のままです。
+`json` も例外で、Linguist の色がほぼ黒(`#292929`)でタブ上は `generated` のグレーと見分けが
+つかないため、従来の黄緑を残しています。
+
 | 色 | 対象 |
 |---|---|
 | `diff` | 差分エディタ、Git 上のファイル |
@@ -149,7 +157,7 @@ VS Code 標準のピン留めを切り替えるだけなので、保護リスト
 `.gitignore` `.eslintignore` `.editorconfig` `.npmrc` は `toml`、
 `.eslintrc` `.prettierrc` は `json`、`.env`(`.env.local` などの派生も含む)は `env` です。
 `.eslintrc.json` のように実際の拡張子が付いている場合は、そちらの書式の色を優先します
-(JSON なら黄緑、YAML ならミント)。
+(JSON なら黄緑、YAML なら赤)。
 
 判定は 差分 → テスト → 自動生成 → 拡張子 の順です。自分で書いたルールが 1 つのファイルに
 複数当たった場合は**キーが長い方**が勝つので、`settings.json` を並べ替えても色は変わりません。

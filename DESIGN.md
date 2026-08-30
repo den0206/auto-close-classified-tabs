@@ -136,7 +136,7 @@ provideFileDecoration(uri) {
 **色は言語・ファイル形式ごとに 1 色、全 26 色。** 当初は 9 色にまとめていたが、
 `settings.json` と `pubspec.yaml` が同じ「設定ファイル」として同色になり、実機で
 区別がつかなかった。色数を絞る判断より、書式ごとに分ける方が実用上の効きが大きい。
-色相は言語の公式カラーに寄せてある(TS 青 / Python 黄 / Go 水色 / Rust 橙 / Ruby 赤)。
+色相は [GitHub Linguist](https://github.com/github-linguist/linguist) の `languages.yml` に合わせる。
 
 | 分類 | 色 ID |
 |---|---|
@@ -150,11 +150,34 @@ provideFileDecoration(uri) {
 ファイル名の先頭一致で引く別テーブルを持つ。ただし **拡張子を先に見る** ので、
 `.eslintrc.json` は JSON、`.eslintrc.yaml` は YAML として扱われる。書式が分かるならその色を優先する。
 
-色の彩度は実機で見てから調整した。`json` の初期値 `#B5CEA8` は彩度が低く、非アクティブタブで
-薄く描画されると無彩色に見えたため `#C3E88D` に上げ、隣接していた `yaml` は緑からミント
-`#4EC9A0` へ色相をずらして衝突を避けている。
+### 色の出典 — GitHub Linguist
+当初は実機で見ながら手で調整していたが、**GitHub がリポジトリの言語バーに使う色**
+(`github-linguist/linguist` の `lib/linguist/languages.yml`)へ合わせた。ユーザーが既に
+GitHub で見慣れている対応をそのまま持ち込めるので、覚え直しが要らない。
 
-橙系が複数に割り当たるのは避けられないので、記号(§4.1 ③)と併用して補う。
+複数の言語をまとめている色 ID は代表を 1 つ選ぶ:
+`jvm` → Java / `swift` → Swift / `cfamily` → C++ / `shell` → Shell / `html` → HTML /
+`css` → CSS / `xml` → XML / `docs` → Markdown / `sql` → SQL / `env` → Dotenv /
+`docker` → Dockerfile。`diff` `test` `generated` は言語ではなく状態で Linguist に色が無いため、
+従来の値を残す。
+
+**`json` も例外として従来の黄緑 `#C3E88D` / `#3F7A16` を残す。** Linguist の JSON は `#292929` で
+彩度がゼロ。明度を上げても灰色にしかならず、タブ上で `generated` の灰色と見分けがつかなくなる。
+色そのものが識別の主軸(§4.1 ②でバッジが使えないと判明している)なので、ここは出典より識別を採る。
+
+**Linguist の値をそのままは使えない。** あれは小さな丸ドット用に選ばれた 1 色で、タブの
+**文字色**にすると暗いテーマで沈み(JSON `#292929` / Ruby `#701516` / Markdown `#083fa1`)、
+明るいテーマで飛ぶ(JavaScript `#f1e05a` / Rust `#dea584`)。そこで **色相と彩度は Linguist の
+まま、明度だけ**を dark は 62〜78%、light は 24〜40% に収める。この範囲に元から入っている色
+(JavaScript の dark など)は Linguist の値がそのまま残る。
+
+**`diff` は橙からティール `#89D2AD` / `#2A6F4D` へ移した。** Java の Linguist 色 `#b07219` を
+`jvm` に入れた結果、従来の `diff`(light `#B7791F`)と light テーマで色差 ΔE 2.7 — 事実上同色に
+なったため。`diff` は Linguist 非対象で自由に決められる側なので、こちらを動かして橙帯から抜いた。
+
+**Linguist に合わせた代償として、近い色が増えた**(青: `typescript` `python` `xml` `docs`、
+橙: `sql` `jvm` `rust`、黄: `javascript` `env`、赤: `yaml` `ruby`)。GitHub 側のパレットが実際に
+そうなっているため避けられない。記号(§4.1 ③)と併用して補う。
 
 ### 設定による上書き
 glob ではなく単純なマッチにした。依存を増やさず、ReDoS の余地も無く、テストしやすい。

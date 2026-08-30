@@ -46,10 +46,19 @@ argument-hint: [拡張子や種別の説明（例: .kdl を設定ファイルと
 
 ### 3. 色を選ぶときの指針
 
-- **言語に公式カラーがあればそれに寄せる**（TS 青 / Python 黄 / Go 水色 / Rust 橙 / Ruby 赤）。見慣れた対応の方が覚え直さずに済む。
-- **彩度を落としすぎない。** 非アクティブなタブは薄く描画されるので、彩度が低い色は無彩色に見える（`json` の初期値 `#B5CEA8` がこれで失敗した）。
-- **隣接する色と色相をずらす。** 同じ用途で並びやすいもの（`json` / `yaml` / `toml` など）は、明度ではなく色相で分ける。
-- `light` はテーマの背景が明るいので、`dark` より暗く濃い値にする。
+色は自分で選ばず、**[GitHub Linguist](https://github.com/github-linguist/linguist) の
+`lib/linguist/languages.yml` から引く**。GitHub の言語バーと同じ色になるので覚え直しが要らない。
+
+```bash
+curl -sSL https://raw.githubusercontent.com/github-linguist/linguist/main/lib/linguist/languages.yml \
+  | grep -A20 '^Zig:' | grep 'color:'
+```
+
+- 複数の言語をまとめる色 ID は**代表を 1 つ**選ぶ（`jvm` は Java、`cfamily` は C++）。
+- Linguist に無いもの（`diff` `test` `generated` のような状態）だけ自分で決める。
+- **Linguist の値をそのまま書かない。** 丸ドット用の 1 色なので、文字色にすると暗いテーマで沈む
+  ／明るいテーマで飛ぶ。**色相と彩度はそのまま、明度だけ** dark は 62〜78%、light は 24〜40%
+  に収める（元からこの範囲なら Linguist の値のまま）。
 
 ### 4. 記号を選ぶときの指針
 

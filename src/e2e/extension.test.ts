@@ -119,8 +119,7 @@ suite('auto-close-classified-tabs', () => {
 
   test('maxTabs の変更が即座に反映される', async () => {
     await openAll(['m1.ts', 'm2.ts', 'm3.ts']);
-    await new Promise((r) => setTimeout(r, 400));
-    assert.equal(tabCount(), 3);
+    await waitFor(() => tabCount() === 3);
     await setConfig('maxTabs', 1);
     try {
       await waitFor(() => tabCount() === 1);
@@ -177,19 +176,18 @@ suite('auto-close-classified-tabs', () => {
   test('差分タブは種別上限どおり 1 枚に制限される', async () => {
     await setConfig('maxTabsByType', { diff: 1 });
     try {
+      const diffCount = () =>
+        allTabs().filter((t) => t.input instanceof vscode.TabInputTextDiff).length;
       for (const n of [1, 2, 3]) {
+        const opened = diffCount();
         await vscode.commands.executeCommand(
           'vscode.diff',
           fixture(`old${n}.ts`, 'a\n'),
           fixture(`new${n}.ts`, 'b\n'),
         );
-        await new Promise((r) => setTimeout(r, 250));
+        // 開き終わるのを待つ。開いた直後に上限で閉じられることもあるので増減どちらでも抜ける
+        await waitFor(() => diffCount() !== opened || allTabs().some((t) => t.label.includes(`new${n}.ts`)));
       }
-      const diffCount = () =>
-        vscode.window.tabGroups.all.reduce(
-          (n, g) => n + g.tabs.filter((t) => t.input instanceof vscode.TabInputTextDiff).length,
-          0,
-        );
       await waitFor(() => diffCount() === 1);
     } finally {
       await setConfig('maxTabsByType', undefined);
@@ -230,6 +228,7 @@ suite('auto-close-classified-tabs', () => {
       assert.equal(info?.globalValue, undefined, `設定が残っている: ${section}.${key}`);
     }
   });
+
   test('別グループのタブを保護しても、そのタブだけがピン留めされタブは増えない', async () => {
     await openAll(['p1.ts']);
     await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(fixture('p2.ts')), {

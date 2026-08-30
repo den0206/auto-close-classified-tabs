@@ -122,9 +122,15 @@ even when they are the same kind of file.
 
 The hues come from [GitHub Linguist](https://github.com/github-linguist/linguist) — the
 same colors GitHub puts on the language bar of a repository — so a `.ts` tab is
-TypeScript blue and a `.rb` tab is Ruby red without you having to learn a new mapping.
-Linguist picks those values for small solid dots, so the lightness is shifted per theme to
-keep a tab label readable; the hue and saturation are left alone. `diff`, `test` and
+TypeScript blue without you having to learn a new mapping. Linguist picks those values for
+small solid dots, so the lightness is shifted per theme to keep a tab label readable; the
+hue and saturation are left alone.
+
+**Reds and yellows are left out.** A tab label is exactly where VS Code paints errors
+(red) and warnings (yellow), so a file type wearing those hues reads as a problem that is
+not there. Every type Linguist puts in the red, orange or yellow band — `javascript`,
+`yaml`, `ruby`, `swift`, `cfamily`, `rust`, `jvm`, `sql`, `env`, `toml`, `html` — is moved
+to the cool side of the wheel instead: green, teal, blue, violet, pink. `diff`, `test` and
 `generated` are states rather than languages and have no Linguist color, so they keep
 their own — and so does `json`, whose Linguist color is a near-black `#292929` that would
 be indistinguishable from `generated` gray on a tab.
@@ -162,7 +168,7 @@ Dotfiles are matched by name, since they have no usable extension: `.gitignore`
 `.eslintignore` `.editorconfig` `.npmrc` go to `toml`, `.eslintrc` `.prettierrc` to
 `json`, and `.env` — along with `.env.local` and friends — to `env`. A dotfile that does
 carry a real extension keeps that format's color, so `.eslintrc.json` is JSON green and
-`.eslintrc.yaml` is YAML red.
+`.eslintrc.yaml` is YAML teal.
 
 Rules are checked in this order: diff, test, generated, then the extension. Your
 `colors.rules` entries override the **color** and leave the icon alone. When more than one

@@ -215,32 +215,32 @@
         "id": "autoCloseClassifiedTabs.yaml",
         "description": "%color.yaml%",
         "defaults": {
-          "dark": "#EB5157",
-          "light": "#B7151B"
+          "dark": "#4ED0B6",
+          "light": "#0B846C"
         }
       },
       {
         "id": "autoCloseClassifiedTabs.toml",
         "description": "%color.toml%",
         "defaults": {
-          "dark": "#DD815F",
-          "light": "#9C4221"
+          "dark": "#A9CCA4",
+          "light": "#37762D"
         }
       },
       {
         "id": "autoCloseClassifiedTabs.env",
         "description": "%color.env%",
         "defaults": {
-          "dark": "#E5D559",
-          "light": "#B09F1C"
+          "dark": "#EE63D7",
+          "light": "#9C0D84"
         }
       },
       {
         "id": "autoCloseClassifiedTabs.sql",
         "description": "%color.sql%",
         "defaults": {
-          "dark": "#FFB53D",
-          "light": "#CC7E00"
+          "dark": "#ABD0E3",
+          "light": "#07567E"
         }
       },
       {
@@ -271,8 +271,8 @@
         "id": "autoCloseClassifiedTabs.javascript",
         "description": "%color.javascript%",
         "defaults": {
-          "dark": "#F1E05A",
-          "light": "#BCA910"
+          "dark": "#EF6CAD",
+          "light": "#9C1157"
         }
       },
       {
@@ -303,32 +303,32 @@
         "id": "autoCloseClassifiedTabs.rust",
         "description": "%color.rust%",
         "defaults": {
-          "dark": "#DEA584",
-          "light": "#A1562B"
+          "dark": "#D390D5",
+          "light": "#8B298E"
         }
       },
       {
         "id": "autoCloseClassifiedTabs.jvm",
         "description": "%color.jvm%",
         "defaults": {
-          "dark": "#E7AB55",
-          "light": "#B07219"
+          "dark": "#8989E6",
+          "light": "#0A0A7F"
         }
       },
       {
         "id": "autoCloseClassifiedTabs.swift",
         "description": "%color.swift%",
         "defaults": {
-          "dark": "#F1614B",
-          "light": "#BE260E"
+          "dark": "#E5A4CF",
+          "light": "#98166C"
         }
       },
       {
         "id": "autoCloseClassifiedTabs.ruby",
         "description": "%color.ruby%",
         "defaults": {
-          "dark": "#E05C5D",
-          "light": "#701516"
+          "dark": "#A38CD9",
+          "light": "#5430A6"
         }
       },
       {
@@ -343,8 +343,8 @@
         "id": "autoCloseClassifiedTabs.cfamily",
         "description": "%color.cfamily%",
         "defaults": {
-          "dark": "#F34B7D",
-          "light": "#BF0D42"
+          "dark": "#E0B3BF",
+          "light": "#99334E"
         }
       },
       {
@@ -359,8 +359,8 @@
         "id": "autoCloseClassifiedTabs.html",
         "description": "%color.html%",
         "defaults": {
-          "dark": "#E97153",
-          "light": "#B53717"
+          "dark": "#51D66C",
+          "light": "#118829"
         }
       },
       {

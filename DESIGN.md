@@ -137,6 +137,7 @@ provideFileDecoration(uri) {
 `settings.json` と `pubspec.yaml` が同じ「設定ファイル」として同色になり、実機で
 区別がつかなかった。色数を絞る判断より、書式ごとに分ける方が実用上の効きが大きい。
 色相は [GitHub Linguist](https://github.com/github-linguist/linguist) の `languages.yml` に合わせる。
+ただし**赤系・橙系・黄系は使わない**(理由は下記)。
 
 | 分類 | 色 ID |
 |---|---|
@@ -168,16 +169,46 @@ GitHub で見慣れている対応をそのまま持ち込めるので、覚え�
 **Linguist の値をそのままは使えない。** あれは小さな丸ドット用に選ばれた 1 色で、タブの
 **文字色**にすると暗いテーマで沈み(JSON `#292929` / Ruby `#701516` / Markdown `#083fa1`)、
 明るいテーマで飛ぶ(JavaScript `#f1e05a` / Rust `#dea584`)。そこで **色相と彩度は Linguist の
-まま、明度だけ**を dark は 62〜78%、light は 24〜40% に収める。この範囲に元から入っている色
+まま、明度だけ**を dark は 56〜79%、light は 26〜42% に収める。この範囲に元から入っている色
 (JavaScript の dark など)は Linguist の値がそのまま残る。
 
-**`diff` は橙からティール `#89D2AD` / `#2A6F4D` へ移した。** Java の Linguist 色 `#b07219` を
-`jvm` に入れた結果、従来の `diff`(light `#B7791F`)と light テーマで色差 ΔE 2.7 — 事実上同色に
-なったため。`diff` は Linguist 非対象で自由に決められる側なので、こちらを動かして橙帯から抜いた。
+**`diff` は橙からティール `#89D2AD` / `#2A6F4D` へ移した。** 下記のとおり暖色を使わない方針に
+したため。`diff` は Linguist 非対象で色を自由に決められる側なので、11 種別の振り直しとは別に
+先に動かしてある。
 
-**Linguist に合わせた代償として、近い色が増えた**(青: `typescript` `python` `xml` `docs`、
-橙: `sql` `jvm` `rust`、黄: `javascript` `env`、赤: `yaml` `ruby`)。GitHub 側のパレットが実際に
-そうなっているため避けられない。記号(§4.1 ③)と併用して補う。
+**赤・橙・黄は使わない。** タブのラベルは VS Code がエラー(赤)と警告(黄)を出すのと同じ
+場所で、`errorForeground` `editorWarning.foreground` と同系の色を種別に割り当てると、
+問題の有無と種別の区別が混ざる。Linguist で暖色になる 11 種別
+(`javascript` `yaml` `ruby` `swift` `cfamily` `rust` `jvm` `sql` `env` `toml` `html`)は
+色相 90〜345°(緑→ティール→青→紫→ピンク)へ振り直した。彩度と明度は上と同じ帯に収める
+(`html` `yaml` の dark と `ruby` の light が帯の端で、上の 56〜79% / 26〜42% はこの 3 色まで含む)。
+
+振り直しは、維持した 15 色の色相を固定した上で**残りの隙間へ等間隔に置く**貪欲配置で決めた。
+`test`(dark 286°)は言語を問わず出るので前後 10° を空け、同時に開かれにくい組
+(`ruby`↔`csharp`、`jvm`↔`php`)には近い色相を許して隙間を稼いでいる。light の `test` だけは
+色相が 258° で `ruby` と重なるが、明度が 66% と 42% で離れているため色差 ΔE 25.6 あり問題ない。
+
+| 種別 | 新しい色相帯 | dark / light |
+|---|---|---|
+| `toml` | 112° 淡い若草 | `#A9CCA4` / `#37762D` |
+| `html` | 132° 緑 | `#51D66C` / `#118829` |
+| `yaml` | 168° ティール | `#4ED0B6` / `#0B846C` |
+| `sql` | 200° 淡い空 | `#ABD0E3` / `#07567E` |
+| `jvm` | 240° インディゴ | `#8989E6` / `#0A0A7F` |
+| `ruby` | 258° 藤 | `#A38CD9` / `#5430A6` |
+| `rust` | 298° 蘭 | `#D390D5` / `#8B298E` |
+| `env` | 310° マゼンタ | `#EE63D7` / `#9C0D84` |
+| `swift` | 320° 淡いピンク | `#E5A4CF` / `#98166C` |
+| `javascript` | 330° ピンク | `#EF6CAD` / `#9C1157` |
+| `cfamily` | 344° 淡いローズ | `#E0B3BF` / `#99334E` |
+
+**代償として、近い色が増えた**(緑〜ティール: `json` `shell` `toml` `html` `diff` `yaml`、
+青: `typescript` `python` `xml` `docs` `sql`、
+紫〜ピンク: `test` `css` `ruby` `rust` `env` `swift` `javascript` `cfamily`)。
+暖色を捨てると 26 色を色相 255° に詰めることになり、最近傍の色差は ΔE 10〜13 まで下がる。
+実測でいちばん近いのは dark が `typescript`/`python` の 10.3、light が `sql`/`python` の 9.9 で、
+今回増えた緑帯も dark `diff`/`toml` 12.5、light `diff`/`yaml` 12.3、light `json`/`toml` 11.5 と
+同じ水準にある。記号(§4.1 ③)と併用して補う。
 
 ### 設定による上書き
 glob ではなく単純なマッチにした。依存を増やさず、ReDoS の余地も無く、テストしやすい。

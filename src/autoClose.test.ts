@@ -209,6 +209,24 @@ test('種別が判定できないタブは種別上限に巻き込まれない',
   assert.deepEqual(pickTabsToClose(t, { ...OPTS, maxTabsByType: { diff: 1 } }), ['d1']);
 });
 
+test('同じファイルが 2 グループにあっても片方のグループのキーしか選ばれない', () => {
+  // extension.ts はキーにグループ番号を含める(`<group>\0<uri>`)。含めずに URI だけを
+  // キーにすると、グループ 1 の選定結果でグループ 2 のピン留めしたコピーまで閉じられる。
+  const t = tabs(
+    { key: '1\u0000file:///a.ts', group: 1, lastUsed: 1 },
+    { key: '1\u0000file:///b.ts', group: 1, lastUsed: 2 },
+    { key: '1\u0000file:///c.ts', group: 1, lastUsed: 3, isActive: true },
+    { key: '2\u0000file:///a.ts', group: 2, lastUsed: 1, isPinned: true },
+    { key: '2\u0000file:///d.ts', group: 2, lastUsed: 2, isActive: true },
+  );
+  const got = pickTabsToClose(t, { maxTabs: 2, closePreviewFirst: true });
+  assert.deepEqual(got, ['1\u0000file:///a.ts']);
+  assert.ok(
+    !got.includes('2\u0000file:///a.ts'),
+    'ピン留めされた別グループのコピーが巻き込まれている',
+  );
+});
+
 test('LruTracker: アクセスで順序が更新される', () => {
   const lru = new LruTracker();
   lru.touch('a');

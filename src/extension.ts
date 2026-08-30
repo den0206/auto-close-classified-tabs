@@ -5,10 +5,13 @@ import { buildLabelPatterns, categorize } from './rules';
 
 const DEBOUNCE_MS = 150;
 const LABEL_SETTING = 'workbench.editor.customLabels.patterns';
-
 const lru = new LruTracker();
 let timer: NodeJS.Timeout | undefined;
-/** 装飾が無効な旨の案内は 1 ウィンドウにつき 1 回だけ。永続化はしない。 */
+/**
+ * 装飾が無効な旨の案内は 1 ウィンドウにつき 1 回だけ。永続化はしない
+ * (「後で」を覚えるだけのために `globalState` を持つと、この拡張がデータを一切残さない
+ * という前提が崩れる。新しいウィンドウで再び聞かれるのはその対価)。
+ */
 let noticeShown = false;
 
 /** タブの安定キー。undefined を返したタブは閉じない・数えない。 */
@@ -166,7 +169,7 @@ async function enableTabDecorations(): Promise<void> {
   await explorerCfg.update('badges', false, vscode.ConfigurationTarget.Global);
 
   void vscode.window.showInformationMessage(
-    vscode.l10n.t('Colors and badges now show on tabs only. The Explorer is left plain.'),
+    vscode.l10n.t('Colors and badges now show on tabs only. The Explorer is left plain. "Restore Default Colors and Badges" undoes this — run it before uninstalling, since VS Code leaves these settings behind.'),
   );
 }
 
@@ -223,16 +226,20 @@ async function applyLabelIcons(): Promise<void> {
     { ...current, ...buildLabelPatterns() },
     vscode.ConfigurationTarget.Global,
   );
-  void vscode.window.showInformationMessage(vscode.l10n.t('Type icons added to tab names.'));
+  void vscode.window.showInformationMessage(vscode.l10n.t('Type icons added to tab names. "Remove Type Icons From Tab Names" undoes this — run it before uninstalling, since VS Code leaves this setting behind.'));
 }
 
 async function removeLabelIcons(): Promise<void> {
   const cfg = vscode.workspace.getConfiguration();
   const current = cfg.get<Record<string, string>>(LABEL_SETTING, {}) ?? {};
   const mine = buildLabelPatterns();
+  // 拡張子を 1 つ足すとキーの字面(`**/*.{js,jsx}` → `**/*.{cjs,js,jsx}`)が変わるので、
+  // キー一致だけでは旧版が書いたパターンが settings.json に残り続ける。値(記号)でも拾う。
+  const mineValues = new Set(Object.values(mine));
   const rest: Record<string, string> = {};
   for (const [key, value] of Object.entries(current)) {
-    if (!(key in mine)) rest[key] = value; // ユーザーが自分で足した分は残す
+    const ours = key in mine || (key.startsWith('**/') && mineValues.has(value));
+    if (!ours) rest[key] = value; // ユーザーが自分で足した分は残す
   }
   // 何も残らないなら設定ごと消す。使わなくなったデータは中途半端に残さない。
   await cfg.update(

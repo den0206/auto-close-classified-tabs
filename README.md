@@ -195,6 +195,19 @@ written by **Show Type Colors on Tabs Only** and **Add Type Icons to Tab Names**
 has a command that undoes it (**Restore Default Colors and Badges** / **Remove Type Icons
 From Tab Names**).
 
+## Before you uninstall
+
+If you ran either command that writes settings, run its counterpart first:
+
+> **Auto Close Classified Tabs: Restore Default Colors and Badges**
+> **Auto Close Classified Tabs: Remove Type Icons From Tab Names**
+
+VS Code gives an extension no uninstall hook, so these settings cannot be cleaned up
+automatically. Leave them behind and nothing is left to explain them: the Explorer keeps
+its Git colors and `M` / `U` badges switched **off**, and tab names keep their emoji
+prefix. Removing `workbench.editor.decorations.*`, `explorer.decorations.*` and
+`workbench.editor.customLabels.patterns` from `settings.json` by hand does the same job.
+
 ## Development
 
 ```bash

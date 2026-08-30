@@ -251,4 +251,25 @@ suite('auto-close-classified-tabs', () => {
     await waitFor(() => allTabs().every((t) => !t.isPinned));
   });
 
+  test('旧版が書いた種別アイコンのパターンも取り除ける', async () => {
+    const key = 'workbench.editor.customLabels.patterns';
+    const read = () => vscode.workspace.getConfiguration().get<Record<string, string>>(key);
+    const before = read();
+    // 拡張子を 1 つ足した旧版が書いたキー(字面は今と違うが記号は同じ)と、ユーザー自身のパターン
+    await vscode.workspace.getConfiguration().update(key, {
+      '**/*.{cts,mts,ts,zzz}': '🟦 ${filename}',
+      '**/legacy/*.ts': '🏚 ${filename}',
+    }, vscode.ConfigurationTarget.Global);
+
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.applyLabelIcons');
+    await vscode.commands.executeCommand('autoCloseClassifiedTabs.removeLabelIcons');
+
+    const after = read() ?? {};
+    assert.deepEqual(
+      Object.keys(after),
+      ['**/legacy/*.ts'],
+      `旧版のキーが残ったか、ユーザーのパターンを消した: ${JSON.stringify(after)}`,
+    );
+    await vscode.workspace.getConfiguration().update(key, before, vscode.ConfigurationTarget.Global);
+  });
 });

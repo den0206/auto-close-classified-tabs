@@ -120,6 +120,15 @@ One color per language or file format, 26 in all. Two settings files in differen
 (`settings.json` and `pubspec.yaml`) get different colors, so tabs stay distinguishable
 even when they are the same kind of file.
 
+The hues come from [GitHub Linguist](https://github.com/github-linguist/linguist) — the
+same colors GitHub puts on the language bar of a repository — so a `.ts` tab is
+TypeScript blue and a `.rb` tab is Ruby red without you having to learn a new mapping.
+Linguist picks those values for small solid dots, so the lightness is shifted per theme to
+keep a tab label readable; the hue and saturation are left alone. `diff`, `test` and
+`generated` are states rather than languages and have no Linguist color, so they keep
+their own — and so does `json`, whose Linguist color is a near-black `#292929` that would
+be indistinguishable from `generated` gray on a tab.
+
 | Color | Matches |
 |---|---|
 | `diff` | diff editors, Git versions of a file |
@@ -153,7 +162,7 @@ Dotfiles are matched by name, since they have no usable extension: `.gitignore`
 `.eslintignore` `.editorconfig` `.npmrc` go to `toml`, `.eslintrc` `.prettierrc` to
 `json`, and `.env` — along with `.env.local` and friends — to `env`. A dotfile that does
 carry a real extension keeps that format's color, so `.eslintrc.json` is JSON green and
-`.eslintrc.yaml` is YAML mint.
+`.eslintrc.yaml` is YAML red.
 
 Rules are checked in this order: diff, test, generated, then the extension. Your
 `colors.rules` entries override the **color** and leave the icon alone. When more than one

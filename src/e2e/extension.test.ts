@@ -229,6 +229,28 @@ suite('auto-close-classified-tabs', () => {
     }
   });
 
+  test('装飾を有効にする前に書いていた設定は、元に戻すと戻ってくる', async () => {
+    // 一律に undefined を書くと、自分の意思で false にしていた人の設定まで消える
+    const explorer = () => vscode.workspace.getConfiguration('explorer.decorations');
+    const editor = () => vscode.workspace.getConfiguration('workbench.editor.decorations');
+    await explorer().update('badges', false, vscode.ConfigurationTarget.Global);
+    try {
+      await vscode.commands.executeCommand('autoCloseClassifiedTabs.enableTabDecorations');
+      await vscode.commands.executeCommand('autoCloseClassifiedTabs.restoreDecorationDefaults');
+      assert.equal(
+        explorer().inspect('badges')?.globalValue,
+        false,
+        'ユーザーが元々書いていた値が消えた',
+      );
+    } finally {
+      for (const cfg of [explorer(), editor()]) {
+        for (const key of ['colors', 'badges']) {
+          await cfg.update(key, undefined, vscode.ConfigurationTarget.Global);
+        }
+      }
+    }
+  });
+
   test('別グループのタブを保護しても、そのタブだけがピン留めされタブは増えない', async () => {
     await openAll(['p1.ts']);
     await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(fixture('p2.ts')), {

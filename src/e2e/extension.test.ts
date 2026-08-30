@@ -144,6 +144,17 @@ suite('auto-close-classified-tabs', () => {
     }
   });
 
+  test('closeOnStartup が false でも、開いたタブは通常どおり閉じる', async () => {
+    // このフラグが効くのは activate 時の 1 回だけ。全体の無効化として実装されると壊れる
+    await setConfig('closeOnStartup', false);
+    try {
+      await openAll(['b1.ts', 'b2.ts', 'b3.ts', 'b4.ts', 'b5.ts']);
+      await waitFor(() => tabCount() === 3);
+    } finally {
+      await setConfig('closeOnStartup', undefined);
+    }
+  });
+
   test('コマンドがすべて登録されている', async () => {
     const all = await vscode.commands.getCommands(true);
     for (const id of ['closeUnused', 'toggleProtect', 'enableTabDecorations', 'restoreDecorationDefaults', 'applyLabelIcons', 'removeLabelIcons']) {

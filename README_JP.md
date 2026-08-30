@@ -25,6 +25,9 @@ npm run compile
 
 VS Code でこのフォルダを開き `F5` を押すと、拡張機能ホストが起動して試せます。
 実際にインストールする場合は `npm run package` を実行し、`vsix/` に出力される `.vsix` を入れてください。
+リリースは [Open VSX](https://open-vsx.org/) (Cursor / VSCodium の拡張機能検索) に公開しています。
+VS Code の Marketplace には出していないので、VS Code では
+[リリースページ](https://github.com/den0206/auto-close-classified-tabs/releases)の `.vsix` を入れてください。
 
 ### 最初に一度だけ: 色をタブにだけ表示する
 
@@ -209,8 +212,8 @@ VS Code は拡張にアンインストールのフックを渡さないため、
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # ユニットテスト(60 件、VS Code 不要)
-npm run test:e2e    # 統合テスト(12 件、VS Code を起動)
+npm test            # ユニットテスト(64 件、VS Code 不要)
+npm run test:e2e    # 統合テスト(16 件、VS Code を起動)
 npm run package     # vsix/auto-close-classified-tabs.vsix を作る
 ```
 

@@ -25,6 +25,9 @@ npm run compile
 
 Open this folder in VS Code and press `F5` to launch an Extension Development Host.
 To install it for real, run `npm run package` and install the `.vsix` it writes to `vsix/`.
+Releases are published to [Open VSX](https://open-vsx.org/) — where Cursor and VSCodium
+search for extensions. It is not on the VS Code Marketplace, so in VS Code itself install
+the `.vsix` from the [releases page](https://github.com/den0206/auto-close-classified-tabs/releases).
 
 ### One-time setup: put the colors on tabs only
 
@@ -212,8 +215,8 @@ prefix. Removing `workbench.editor.decorations.*`, `explorer.decorations.*` and
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # unit tests (60, no VS Code needed)
-npm run test:e2e    # integration tests (12, launches VS Code)
+npm test            # unit tests (64, no VS Code needed)
+npm run test:e2e    # integration tests (16, launches VS Code)
 npm run package     # build vsix/auto-close-classified-tabs.vsix
 ```
 

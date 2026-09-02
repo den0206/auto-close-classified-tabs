@@ -8,6 +8,8 @@ and versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.0.3] — 2026-09-02
+
 ### Added
 
 - A status bar item showing how many tabs the active group holds against the limit, the
